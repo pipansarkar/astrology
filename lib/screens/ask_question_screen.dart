@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../backend/profile_repository.dart';
 import '../backend/question_repository.dart';
+import '../notifications/push_service.dart';
 import '../models/birth_details.dart';
 import 'birth_form_screen.dart';
 
@@ -86,6 +87,8 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     });
     try {
       await _questions.submit(_selected!, text);
+      // Ask for notification permission so we can tell them when it's answered.
+      await PushService.enable().catchError((_) => false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Question sent to the astrologer')),

@@ -5,6 +5,7 @@ import '../astro/kundli.dart';
 import '../backend/horoscope_repository.dart';
 import '../horoscope/daily_horoscope.dart';
 import '../horoscope/default_texts.dart';
+import '../notifications/push_service.dart';
 
 /// Daily horoscope from the Moon's real transit (Chandra Gochar) and, when
 /// the birth nakshatra is known, Tara Bala.
@@ -36,10 +37,14 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
 
   int? _sign;
   HoroscopeTexts _texts = HoroscopeTexts.defaults;
+  bool _reminder = false;
 
   @override
   void initState() {
     super.initState();
+    PushService.dailyReminderOn().then((v) {
+      if (mounted) setState(() => _reminder = v);
+    });
     _sign = widget.moonSign;
     if (!widget.isPersonal) _loadSavedSign();
     HoroscopeRepository().load().then((t) {
@@ -107,6 +112,29 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
             ),
             const SizedBox(height: 16),
           ],
+          if (PushService.isAvailable)
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              secondary: const Icon(Icons.notifications_outlined),
+              title: const Text('Morning reminder'),
+              subtitle: const Text('A notification at 7 AM every day'),
+              value: _reminder,
+              onChanged: (on) async {
+                final messenger = ScaffoldMessenger.of(context);
+                final result = await PushService.setDailyReminder(on);
+                if (!mounted) return;
+                setState(() => _reminder = result);
+                if (on && !result) {
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Allow notifications in Android settings to get reminders.',
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
           if (sign != null)
             _Reading(
               horoscope: DailyHoroscope.compute(

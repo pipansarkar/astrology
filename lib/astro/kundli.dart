@@ -162,6 +162,12 @@ class Kundli {
 
   PlanetPosition planet(Body b) => planets.firstWhere((p) => p.body == b);
 
+  /// Sign (0-11) occupying a house (1-12), whole-sign from the Lagna.
+  int signOfHouse(int house) => (lagna.sign + house - 1) % 12;
+
+  List<PlanetPosition> planetsInHouse(int house) =>
+      planets.where((p) => p.house == house).toList();
+
   List<ChartItem> get rashiItems => [
     for (final p in planets) (label: p.shortLabel, sign: p.sign),
   ];

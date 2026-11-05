@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supplied at build time so keys never live in source control:
-///   flutter run --dart-define-from-file=supabase.json
-/// See supabase.example.json. Find both values in Supabase Dashboard ->
+///   flutter run --dart-define-from-file=app_config.json
+/// See app_config.example.json. Find both values in Supabase Dashboard ->
 /// Project Settings -> API Keys. The publishable key is safe to ship in the
 /// app; row-level security protects the data. Never put the secret key here.
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL');

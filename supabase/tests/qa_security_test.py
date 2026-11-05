@@ -1,9 +1,9 @@
 # Security tests for the Q&A tables, run against the LINKED Supabase project.
 # Creates 3 temporary anonymous users and deletes them afterwards.
-# Needs: supabase.json, `supabase link`, Supabase CLI logged in.
+# Needs: app_config.json, `supabase link`, Supabase CLI logged in.
 #   python3 supabase/tests/qa_security_test.py
 import json, sys, subprocess, urllib.request, urllib.error
-cfg = json.load(open('supabase.json'))
+cfg = json.load(open('app_config.json'))
 URL, KEY = cfg['SUPABASE_URL'], cfg['SUPABASE_PUBLISHABLE_KEY']
 
 def req(method, path, token=None, body=None, prefer=None):

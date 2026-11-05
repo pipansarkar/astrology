@@ -44,8 +44,8 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Supabase keys (see supabase.example.json)
-supabase.json
+# App keys (see app_config.example.json)
+app_config.json
 
 # Local secrets
 .secrets/

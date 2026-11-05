@@ -3,8 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../backend/question_repository.dart';
 import '../backend/supabase_config.dart';
+import '../notifications/push_service.dart';
 import 'astrologer_desk_screen.dart';
-import 'astrologer_sign_in_screen.dart';
+import 'account_screen.dart';
 import 'birth_form_screen.dart';
 import 'horoscope_screen.dart';
 import 'questions_screen.dart';
@@ -38,6 +39,7 @@ class _HomeViewState extends State<_HomeView> {
   @override
   void initState() {
     super.initState();
+    PushService.sync();
     final user = widget.user;
     if (user != null && !user.isAnonymous) {
       QuestionRepository().isAstrologer().then((v) {
@@ -57,29 +59,28 @@ class _HomeViewState extends State<_HomeView> {
   @override
   Widget build(BuildContext context) {
     final user = widget.user;
-    final isStaff = user != null && !user.isAnonymous;
+    final hasEmailAccount = user != null && !user.isAnonymous;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Astrology'),
         actions: [
-          if (backendEnabled)
+          if (backendEnabled && !hasEmailAccount)
+            TextButton.icon(
+              onPressed: () => _push(const AccountScreen()),
+              icon: const Icon(Icons.login),
+              label: const Text('Sign in'),
+            ),
+          if (backendEnabled && hasEmailAccount)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (v) => switch (v) {
-                'login' => _push(const AstrologerSignInScreen()),
-                'logout' => _signOut(),
-                _ => null,
+              tooltip: 'Account',
+              icon: const Icon(Icons.account_circle_outlined),
+              onSelected: (v) {
+                if (v == 'logout') _signOut();
               },
               itemBuilder: (_) => [
-                if (isStaff) ...[
-                  PopupMenuItem(enabled: false, child: Text(user.email ?? '')),
-                  const PopupMenuItem(value: 'logout', child: Text('Sign out')),
-                ] else
-                  const PopupMenuItem(
-                    value: 'login',
-                    child: Text('Astrologer login'),
-                  ),
+                PopupMenuItem(enabled: false, child: Text(user.email ?? '')),
+                const PopupMenuItem(value: 'logout', child: Text('Sign out')),
               ],
             ),
         ],

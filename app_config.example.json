@@ -1,0 +1,8 @@
+{
+  "SUPABASE_URL": "https://YOUR-PROJECT-REF.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_YOUR-KEY",
+  "FIREBASE_PROJECT_ID": "your-firebase-project",
+  "FIREBASE_API_KEY": "AIza...",
+  "FIREBASE_APP_ID": "1:1234567890:android:abc123",
+  "FIREBASE_SENDER_ID": "1234567890"
+}

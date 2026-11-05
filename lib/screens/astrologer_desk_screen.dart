@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../astro/ephemeris.dart';
 import '../astro/kundli.dart';
+import '../astrologer/reading_assistant.dart';
 import '../backend/question_repository.dart';
 import '../models/question.dart';
+import '../notifications/push_service.dart';
+import '../widgets/reading_assistant_panel.dart';
 import 'chart_screen.dart';
 
 /// Astrologer's work queue: open questions (oldest first) and recent answers.
@@ -18,6 +21,12 @@ class _AstrologerDeskScreenState extends State<AstrologerDeskScreen> {
   final _repo = QuestionRepository();
   late Future<List<Question>> _open = _repo.openQuestions();
   late Future<List<Question>> _done = _repo.answeredByMe();
+
+  @override
+  void initState() {
+    super.initState();
+    PushService.enable().catchError((_) => false);
+  }
 
   void _reload() => setState(() {
     _open = _repo.openQuestions();
@@ -182,6 +191,23 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
               icon: const Icon(Icons.grid_view_rounded),
               label: const Text('View full chart'),
             ),
+          ),
+          const SizedBox(height: 8),
+          ReadingAssistantPanel(
+            kundli: _kundli,
+            question: q.question,
+            onUseDraft: isOpen
+                ? (Reading r) {
+                    _answer.text = r.draft;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Draft inserted. Please review and edit it.',
+                        ),
+                      ),
+                    );
+                  }
+                : null,
           ),
           const Divider(height: 24),
           if (isOpen) ...[

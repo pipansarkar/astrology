@@ -2,12 +2,35 @@ import 'package:flutter/material.dart';
 
 import 'astro/ephemeris.dart';
 import 'backend/supabase_config.dart';
+import 'notifications/push_service.dart';
+import 'screens/astrologer_desk_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/horoscope_screen.dart';
+import 'screens/questions_screen.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
+final messengerKey = GlobalKey<ScaffoldMessengerState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Copies the ephemeris files to app storage on first launch.
   await Future.wait([Ephemeris.init(), initBackend()]);
+
+  PushService.onOpen = (target) {
+    final screen = switch (target) {
+      PushTarget.myQuestions => const QuestionsScreen(),
+      PushTarget.astrologerDesk => const AstrologerDeskScreen(),
+      PushTarget.horoscope => const HoroscopeScreen(),
+    };
+    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => screen));
+  };
+  PushService.onForeground = (title, body) {
+    messengerKey.currentState?.showSnackBar(
+      SnackBar(content: Text(body.isEmpty ? title : '$title: $body')),
+    );
+  };
+  await PushService.init();
+
   runApp(const AstrologyApp());
 }
 
@@ -20,6 +43,8 @@ class AstrologyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Astrology',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
+      scaffoldMessengerKey: messengerKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: seed),
         useMaterial3: true,
