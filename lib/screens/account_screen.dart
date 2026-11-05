@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../backend/google_auth.dart';
 import '../backend/supabase_config.dart';
 
 /// Email + password account. No verification email is sent.
@@ -81,6 +82,23 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  Future<void> _google() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final ok = await signInWithGoogle();
+      if (ok && mounted) Navigator.of(context).pop(true);
+    } on AuthException catch (e) {
+      setState(() => _error = _friendly(e));
+    } catch (_) {
+      setState(() => _error = 'Google sign-in failed. Try again.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   String _friendly(AuthException e) {
     final m = e.message.toLowerCase();
     if (m.contains('already') || e.code == 'email_exists') {
@@ -104,6 +122,28 @@ class _AccountScreenState extends State<AccountScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            if (googleSignInAvailable) ...[
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _google,
+                icon: const Icon(Icons.account_circle),
+                label: const Text('Continue with Google'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size.fromHeight(48),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    child: Text('or with email'),
+                  ),
+                  Expanded(child: Divider()),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
             SegmentedButton<bool>(
               segments: const [
                 ButtonSegment(value: true, label: Text('Create account')),

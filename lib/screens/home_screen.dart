@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../backend/google_auth.dart';
 import '../backend/question_repository.dart';
 import '../backend/supabase_config.dart';
 import '../notifications/push_service.dart';
@@ -8,6 +9,7 @@ import 'astrologer_desk_screen.dart';
 import 'account_screen.dart';
 import 'birth_form_screen.dart';
 import 'horoscope_screen.dart';
+import 'matching_screen.dart';
 import 'questions_screen.dart';
 import 'saved_charts_screen.dart';
 
@@ -55,6 +57,7 @@ class _HomeViewState extends State<_HomeView> {
 
   Future<void> _signOut() async {
     await supabase.auth.signOut();
+    await signOutGoogle();
     await ensureSession(); // back to an automatic (anonymous) account
   }
 
@@ -108,6 +111,12 @@ class _HomeViewState extends State<_HomeView> {
             title: 'Free Kundli',
             subtitle: 'Birth chart, Navamsa, Dasha and Panchang',
             onTap: () => _push(const BirthFormScreen()),
+          ),
+          _FeatureCard(
+            icon: Icons.favorite_border,
+            title: 'Kundli Matching',
+            subtitle: 'Guna Milan score out of 36 for marriage',
+            onTap: () => _push(const MatchingScreen()),
           ),
           if (backendEnabled) ...[
             _FeatureCard(

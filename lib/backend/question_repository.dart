@@ -42,6 +42,7 @@ class QuestionRepository {
         'p_longitude': d.city.longitude,
         'p_utc_offset_minutes': d.city.utcOffsetMinutes,
         'p_question': question,
+        'p_country': d.city.country,
       },
     );
     return Question.fromRow(row as Map<String, dynamic>);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:printing/printing.dart';
 
 import '../astro/ephemeris.dart';
 import '../astro/kundli.dart';
@@ -6,7 +7,9 @@ import '../astro/vedic/dasha.dart';
 import '../astro/vedic/dignity.dart';
 import '../backend/profile_repository.dart';
 import '../backend/supabase_config.dart';
-import '../widgets/north_indian_chart.dart';
+import '../charts/chart_style_setting.dart';
+import '../reports/kundli_pdf.dart';
+import '../widgets/kundli_chart.dart';
 import 'horoscope_screen.dart';
 import 'ask_question_screen.dart';
 
@@ -22,6 +25,32 @@ class ChartScreen extends StatefulWidget {
 class _ChartScreenState extends State<ChartScreen> {
   late bool _saved = widget.kundli.details.id != null;
   bool _saving = false;
+  bool _sharing = false;
+
+  Future<void> _sharePdf() async {
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _sharing = true);
+    try {
+      final k = widget.kundli;
+      final bytes = await buildKundliPdf(
+        k,
+        style: ChartStyleSetting.notifier.value,
+      );
+      final safeName = k.details.name
+          .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')
+          .replaceAll(RegExp(r'^_|_$'), '');
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: 'Kundli_${safeName.isEmpty ? 'chart' : safeName}.pdf',
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not create the PDF.')),
+      );
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+  }
 
   Future<void> _save() async {
     final messenger = ScaffoldMessenger.of(context);
@@ -63,16 +92,16 @@ class _ChartScreenState extends State<ChartScreen> {
                 ),
               ),
             ),
-            if (backendEnabled)
-              IconButton(
-                tooltip: 'Ask an astrologer about this chart',
-                icon: const Icon(Icons.question_answer_outlined),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => AskQuestionScreen(details: k.details),
-                  ),
-                ),
-              ),
+            IconButton(
+              tooltip: 'Share PDF report',
+              icon: _sharing
+                  ? const SizedBox.square(
+                      dimension: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.picture_as_pdf_outlined),
+              onPressed: _sharing ? null : _sharePdf,
+            ),
             if (backendEnabled)
               _saving
                   ? const Padding(
@@ -137,14 +166,16 @@ class _ChartTab extends StatelessWidget {
             _Fact('Nakshatra', moon.nakshatraLabel),
           ],
         ),
-        const SizedBox(height: 20),
-        NorthIndianChart(
+        const SizedBox(height: 16),
+        const Center(child: ChartStylePicker()),
+        const SizedBox(height: 16),
+        KundliChart(
           title: 'Rashi chart (D1)',
           ascendantSign: k.lagna.sign,
           items: k.rashiItems,
         ),
         const SizedBox(height: 24),
-        NorthIndianChart(
+        KundliChart(
           title: 'Navamsa chart (D9)',
           ascendantSign: k.lagna.navamsaSign,
           items: k.navamsaItems,
@@ -191,6 +222,18 @@ class _ChartTab extends StatelessWidget {
             ],
           ),
         ),
+        if (backendEnabled) ...[
+          const SizedBox(height: 16),
+          FilledButton.tonalIcon(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => AskQuestionScreen(details: k.details),
+              ),
+            ),
+            icon: const Icon(Icons.question_answer_outlined),
+            label: const Text('Ask an astrologer about this chart'),
+          ),
+        ],
         const SizedBox(height: 16),
         Card.outlined(
           margin: EdgeInsets.zero,

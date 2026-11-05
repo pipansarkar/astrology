@@ -44,6 +44,7 @@ class Question {
         r['state'] as String,
         (r['latitude'] as num).toDouble(),
         (r['longitude'] as num).toDouble(),
+        country: (r['country'] as String?) ?? 'India',
         utcOffsetMinutes: r['utc_offset_minutes'] as int,
       ),
     ),

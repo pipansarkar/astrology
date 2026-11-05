@@ -92,7 +92,7 @@ void main() {
       BirthDetails(
         name: 'Test',
         localDateTime: DateTime(1995, 8, 15, 10, 30),
-        city: indianCities.first,
+        city: kolkata,
       ),
     );
     for (final p in k.planets) {

@@ -14,7 +14,7 @@ Kundli chart(double lagnaLon, Map<Body, double> lons) {
     details: BirthDetails(
       name: 'Asha',
       localDateTime: DateTime(1995, 8, 15, 10, 30),
-      city: indianCities.first,
+      city: kolkata,
     ),
     lagna: lagna,
     planets: [

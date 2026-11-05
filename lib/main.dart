@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'astro/ephemeris.dart';
 import 'backend/supabase_config.dart';
+import 'charts/chart_style_setting.dart';
 import 'notifications/push_service.dart';
 import 'screens/astrologer_desk_screen.dart';
 import 'screens/home_screen.dart';
@@ -14,7 +15,11 @@ final messengerKey = GlobalKey<ScaffoldMessengerState>();
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Copies the ephemeris files to app storage on first launch.
-  await Future.wait([Ephemeris.init(), initBackend()]);
+  await Future.wait([
+    Ephemeris.init(),
+    initBackend(),
+    ChartStyleSetting.load(),
+  ]);
 
   PushService.onOpen = (target) {
     final screen = switch (target) {

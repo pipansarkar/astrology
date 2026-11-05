@@ -29,6 +29,7 @@ class ProfileRepository {
     'birth_local': d.localDateTime.toIso8601String(),
     'city_name': d.city.name,
     'state': d.city.state,
+    'country': d.city.country,
     'latitude': d.city.latitude,
     'longitude': d.city.longitude,
     'utc_offset_minutes': d.city.utcOffsetMinutes,
@@ -43,6 +44,7 @@ class ProfileRepository {
       r['state'] as String,
       (r['latitude'] as num).toDouble(),
       (r['longitude'] as num).toDouble(),
+      country: (r['country'] as String?) ?? 'India',
       utcOffsetMinutes: r['utc_offset_minutes'] as int,
     ),
   );
