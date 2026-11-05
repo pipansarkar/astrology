@@ -19,8 +19,10 @@ class HomeScreen extends StatelessWidget {
     if (!backendEnabled) return const _HomeView(user: null);
     return StreamBuilder<AuthState>(
       stream: supabase.auth.onAuthStateChange,
-      builder: (context, _) =>
-          _HomeView(key: ValueKey(currentUser?.id), user: currentUser),
+      builder: (context, _) => _HomeView(
+        key: ValueKey('${currentUser?.id}|${currentUser?.email}'),
+        user: currentUser,
+      ),
     );
   }
 }

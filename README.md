@@ -59,13 +59,14 @@ supabase config push      # auth settings (anonymous sign-in on)
 
 ### Add an astrologer
 
-1. The astrologer creates an account in the app (**Sign in → Create account**).
-2. SQL Editor:
-   ```sql
-   insert into public.astrologers (user_id, display_name)
-   select id, 'Their Name' from auth.users where email = 'astrologer@example.com';
-   ```
-3. They reopen the app, and the home screen shows **Astrologer desk**.
+In the SQL editor, invite their email:
+
+```sql
+insert into public.astrologer_invites (email, display_name)
+values ('astrologer@example.com', 'Their Name');
+```
+
+When that email creates an account in the app (**Sign in → Create account**), or if it already has one, it becomes an astrologer automatically. The home screen then shows **Astrologer desk**.
 
 Security for questions is enforced in Postgres (row-level security plus `submit_question` and `answer_question` functions). To check it against your project, run `python3 supabase/tests/qa_security_test.py`.
 
