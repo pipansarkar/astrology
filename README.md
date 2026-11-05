@@ -8,7 +8,8 @@ A free Vedic astrology app built with Flutter and Supabase.
 - **Vimshottari Dasha**: all Mahadashas and Antardashas, with the current period highlighted
 - **Panchang**: tithi, nakshatra, yoga, karana and vara, both at birth and for today
 - **Daily Horoscope**: calculated from the Moon's real position using Chandra Gochar (Moon's house from your rashi) and Tara Bala (today's nakshatra from your birth nakshatra)
-- **Account**: passwordless email sign-in, with birth charts saved to your account
+- **Ask an Astrologer**: users ask about a birth chart and an astrologer answers from an in-app desk that shows the chart and current dasha. The first question is free; paid questions (₹99) are prepared in the database but payments are not connected yet
+- **No sign-up**: every user gets an account automatically (Supabase anonymous sign-in), and charts and questions are saved to it. Astrologers log in with email and password
 
 All charts use the sidereal zodiac with Lahiri ayanamsa, whole-sign houses and the mean lunar node.
 
@@ -35,8 +36,20 @@ Without `supabase.json` the app still runs: kundli and horoscope work offline, b
 ```sh
 supabase link --project-ref <your-ref>
 supabase db push          # applies supabase/migrations
-supabase config push      # auth redirect URL for the magic-link deep link
+supabase config push      # auth settings (anonymous sign-in on)
 ```
+
+### Add an astrologer
+
+1. Dashboard → Authentication → **Add user**: enter their email and a password, and tick **Auto Confirm User**.
+2. SQL Editor:
+   ```sql
+   insert into public.astrologers (user_id, display_name)
+   select id, 'Their Name' from auth.users where email = 'astrologer@example.com';
+   ```
+3. In the app, open ⋮ → **Astrologer login**. The home screen then shows **Astrologer desk**.
+
+Security for questions is enforced in Postgres (row-level security plus `submit_question` and `answer_question` functions). To check it against your project, run `python3 supabase/tests/qa_security_test.py`.
 
 Horoscope texts are stored in the `horoscope_texts` table. You can edit them in the dashboard, or add Bengali and Hindi versions as rows with `lang = 'bn'` or `lang = 'hi'`. To regenerate the English seed after editing `lib/horoscope/default_texts.dart`:
 

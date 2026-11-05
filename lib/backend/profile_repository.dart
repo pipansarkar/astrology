@@ -8,6 +8,7 @@ class ProfileRepository {
   static const _table = 'birth_profiles';
 
   Future<List<BirthDetails>> list() async {
+    await requireSession();
     final rows = await supabase
         .from(_table)
         .select()

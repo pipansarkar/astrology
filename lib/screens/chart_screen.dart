@@ -8,7 +8,7 @@ import '../backend/profile_repository.dart';
 import '../backend/supabase_config.dart';
 import '../widgets/north_indian_chart.dart';
 import 'horoscope_screen.dart';
-import 'sign_in_screen.dart';
+import 'ask_question_screen.dart';
 
 class ChartScreen extends StatefulWidget {
   const ChartScreen({super.key, required this.kundli});
@@ -25,20 +25,17 @@ class _ChartScreenState extends State<ChartScreen> {
 
   Future<void> _save() async {
     final messenger = ScaffoldMessenger.of(context);
-    if (currentUser == null) {
-      final signedIn = await Navigator.of(
-        context,
-      ).push<bool>(MaterialPageRoute(builder: (_) => const SignInScreen()));
-      if (signedIn != true) return;
-    }
     setState(() => _saving = true);
     try {
+      await requireSession();
       await ProfileRepository().save(widget.kundli.details);
       if (!mounted) return;
       setState(() => _saved = true);
       messenger.showSnackBar(const SnackBar(content: Text('Chart saved')));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Could not save: $e')));
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not save. Check your internet.')),
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -66,6 +63,16 @@ class _ChartScreenState extends State<ChartScreen> {
                 ),
               ),
             ),
+            if (backendEnabled)
+              IconButton(
+                tooltip: 'Ask an astrologer about this chart',
+                icon: const Icon(Icons.question_answer_outlined),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => AskQuestionScreen(details: k.details),
+                  ),
+                ),
+              ),
             if (backendEnabled)
               _saving
                   ? const Padding(

@@ -20,6 +20,29 @@ Future<void> initBackend() async {
     url: supabaseUrl,
     publishableKey: supabasePublishableKey,
   );
+  await ensureSession();
+}
+
+/// Every user gets an account automatically (anonymous sign-in): no email,
+/// no password. The session is stored on the device. Astrologers sign in
+/// with email + password instead.
+Future<void> ensureSession() async {
+  if (supabase.auth.currentUser != null) return;
+  try {
+    await supabase.auth.signInAnonymously();
+  } catch (_) {
+    // Offline: features that need the backend retry via [requireSession].
+  }
+}
+
+/// Call before backend actions; throws a readable error when offline.
+Future<User> requireSession() async {
+  await ensureSession();
+  final user = supabase.auth.currentUser;
+  if (user == null) {
+    throw Exception('No internet connection. Please try again.');
+  }
+  return user;
 }
 
 SupabaseClient get supabase => Supabase.instance.client;
