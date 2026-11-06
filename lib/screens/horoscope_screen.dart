@@ -6,6 +6,7 @@ import '../backend/horoscope_repository.dart';
 import '../horoscope/daily_horoscope.dart';
 import '../horoscope/default_texts.dart';
 import '../notifications/push_service.dart';
+import '../widgets/format.dart';
 
 /// Daily horoscope from the Moon's real transit (Chandra Gochar) and, when
 /// the birth nakshatra is known, Tara Bala.
@@ -194,7 +195,7 @@ class _Reading extends StatelessWidget {
         const SizedBox(height: 12),
         Text(
           'Moon moves into ${signNamesSanskrit[nextSign]} on '
-          '${loc.formatMediumDate(change)} at '
+          '${fmtDate(context, change)} at '
           '${loc.formatTimeOfDay(TimeOfDay.fromDateTime(change))}. '
           'The reading changes then.',
           style: theme.textTheme.bodySmall,

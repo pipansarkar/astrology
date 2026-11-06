@@ -81,4 +81,68 @@ class QuestionRepository {
 
   Future<void> answer(String id, String answer) =>
       supabase.rpc('answer_question', params: {'p_id': id, 'p_answer': answer});
+
+  // ---------------------------------------------------------------- trust
+
+  Future<void> rate(String id, int stars, String feedback) => supabase.rpc(
+    'rate_question',
+    params: {'p_id': id, 'p_rating': stars, 'p_feedback': feedback},
+  );
+
+  Future<List<AstrologerProfile>> astrologers() async {
+    final rows = await supabase.rpc('list_astrologers') as List;
+    return rows
+        .map((r) => AstrologerProfile.fromRow(r as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<AstrologerProfile?> myProfile() async {
+    final row = await supabase
+        .from('astrologers')
+        .select('display_name, bio, languages, experience_years')
+        .eq('user_id', currentUser!.id)
+        .maybeSingle();
+    return row == null ? null : AstrologerProfile.fromRow(row);
+  }
+
+  Future<void> updateMyProfile(AstrologerProfile p) => supabase.rpc(
+    'update_my_astrologer_profile',
+    params: {
+      'p_display_name': p.name,
+      'p_bio': p.bio,
+      'p_languages': p.languages,
+      'p_experience_years': p.experienceYears,
+    },
+  );
+}
+
+class AstrologerProfile {
+  const AstrologerProfile({
+    required this.name,
+    required this.bio,
+    required this.languages,
+    this.experienceYears,
+    this.answered = 0,
+    this.ratingAvg,
+    this.ratingCount = 0,
+  });
+
+  final String name;
+  final String bio;
+  final String languages;
+  final int? experienceYears;
+  final int answered;
+  final double? ratingAvg;
+  final int ratingCount;
+
+  factory AstrologerProfile.fromRow(Map<String, dynamic> r) =>
+      AstrologerProfile(
+        name: r['display_name'] as String,
+        bio: (r['bio'] as String?) ?? '',
+        languages: (r['languages'] as String?) ?? '',
+        experienceYears: r['experience_years'] as int?,
+        answered: (r['answered'] as num?)?.toInt() ?? 0,
+        ratingAvg: (r['rating_avg'] as num?)?.toDouble(),
+        ratingCount: (r['rating_count'] as num?)?.toInt() ?? 0,
+      );
 }

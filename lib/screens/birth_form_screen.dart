@@ -5,6 +5,7 @@ import '../data/cities.dart';
 import '../data/city_search.dart';
 import '../data/timezones.dart';
 import '../models/birth_details.dart';
+import '../widgets/format.dart';
 import 'chart_screen.dart';
 
 /// Birth details form.
@@ -118,7 +119,6 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
   @override
   Widget build(BuildContext context) {
     final errorColor = Theme.of(context).colorScheme.error;
-    final loc = MaterialLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.title ?? 'Birth details')),
@@ -141,7 +141,7 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
             _PickerTile(
               icon: Icons.calendar_today,
               label: 'Date of birth',
-              value: _date == null ? null : loc.formatMediumDate(_date!),
+              value: _date == null ? null : fmtDate(context, _date!),
               error: _submitted && _date == null ? 'Pick a date' : null,
               onTap: _pickDate,
             ),

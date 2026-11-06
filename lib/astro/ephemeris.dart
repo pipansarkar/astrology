@@ -122,4 +122,81 @@ class Ephemeris {
   }
 
   static double ayanamsa(double jd) => Sweph.swe_get_ayanamsa_ut(jd);
+
+  static DateTime fromJulianDay(double jd) =>
+      DateTime.fromMillisecondsSinceEpoch(
+        ((jd - 2440587.5) * 86400000).round(),
+        isUtc: true,
+      );
+
+  /// Next rise (or set) of the Sun or Moon after [after], upper limb with
+  /// standard refraction, as used by Indian almanacs. Null if it does not
+  /// rise/set (polar regions).
+  static DateTime? nextRiseSet(
+    Body body,
+    DateTime after,
+    double latitude,
+    double longitude, {
+    required bool rise,
+  }) {
+    assert(body == Body.sun || body == Body.moon);
+    final t = Sweph.swe_rise_trans(
+      julianDay(after),
+      body == Body.sun ? HeavenlyBody.SE_SUN : HeavenlyBody.SE_MOON,
+      SwephFlag.SEFLG_SWIEPH,
+      rise ? RiseSetTransitFlag.SE_CALC_RISE : RiseSetTransitFlag.SE_CALC_SET,
+      GeoPosition(longitude, latitude),
+      1013.25,
+      15,
+    );
+    return t == null ? null : fromJulianDay(t);
+  }
+
+  /// Solar and lunar eclipses (anywhere on Earth) with maximum between
+  /// [from] and [to].
+  static List<({DateTime max, bool solar, String type})> eclipsesBetween(
+    DateTime from,
+    DateTime to,
+  ) {
+    final out = <({DateTime max, bool solar, String type})>[];
+    for (final solar in [true, false]) {
+      var jd = julianDay(from);
+      final end = julianDay(to);
+      while (true) {
+        final info = solar
+            ? Sweph.swe_sol_eclipse_when_glob(
+                jd,
+                SwephFlag.SEFLG_SWIEPH,
+                const EclipseFlag(0),
+                false,
+              )
+            : Sweph.swe_lun_eclipse_when(
+                jd,
+                SwephFlag.SEFLG_SWIEPH,
+                const EclipseFlag(0),
+                false,
+              );
+        final max = info.times?.first;
+        if (max == null || max > end) break;
+        final f = info.eclipseType?.value ?? 0;
+        final type = f & 4 != 0
+            ? 'Total'
+            : f & 8 != 0
+            ? 'Annular'
+            : f & 32 != 0
+            ? 'Hybrid'
+            : f & 64 != 0
+            ? 'Penumbral'
+            : 'Partial';
+        out.add((max: fromJulianDay(max), solar: solar, type: type));
+        jd = max + 20;
+      }
+    }
+    out.sort((a, b) => a.max.compareTo(b.max));
+    return out;
+  }
+
+  /// Sidereal longitude at a UTC instant.
+  static double longitudeAt(Body body, DateTime utc) =>
+      position(body, julianDay(utc)).longitude;
 }

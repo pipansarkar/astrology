@@ -7,6 +7,7 @@ import '../backend/question_repository.dart';
 import '../models/question.dart';
 import '../notifications/push_service.dart';
 import '../widgets/reading_assistant_panel.dart';
+import '../widgets/format.dart';
 import 'chart_screen.dart';
 
 /// Astrologer's work queue: open questions (oldest first) and recent answers.
@@ -41,7 +42,6 @@ class _AstrologerDeskScreenState extends State<AstrologerDeskScreen> {
   }
 
   Widget _list(Future<List<Question>> future, String empty) {
-    final loc = MaterialLocalizations.of(context);
     return FutureBuilder<List<Question>>(
       future: future,
       builder: (context, snap) {
@@ -74,8 +74,9 @@ class _AstrologerDeskScreenState extends State<AstrologerDeskScreen> {
                 ),
                 subtitle: Text(
                   '${q.details.name} · '
-                  '${loc.formatMediumDate(q.createdAt.toLocal())}'
-                  '${q.status == QuestionStatus.open ? ' · ${age.inHours} h waiting' : ''}',
+                  '${fmtDate(context, q.createdAt.toLocal())}'
+                  '${q.status == QuestionStatus.open ? ' · ${age.inHours} h waiting' : ''}'
+                  '${q.rating != null ? ' · ${'★' * q.rating!}' : ''}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => _openQuestion(q),
@@ -94,6 +95,17 @@ class _AstrologerDeskScreenState extends State<AstrologerDeskScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Astrologer desk'),
+          actions: [
+            IconButton(
+              tooltip: 'My public profile',
+              icon: const Icon(Icons.badge_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AstrologerProfileScreen(),
+                ),
+              ),
+            ),
+          ],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'Open'),
@@ -171,7 +183,7 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
           Text(q.question, style: theme.textTheme.titleMedium),
           const SizedBox(height: 12),
           Text(
-            '${loc.formatMediumDate(d.localDateTime)}, '
+            '${fmtDate(context, d.localDateTime)}, '
             '${loc.formatTimeOfDay(TimeOfDay.fromDateTime(d.localDateTime))} · '
             '${d.city.label}',
             style: theme.textTheme.bodySmall,
@@ -235,6 +247,131 @@ class _AnswerQuestionScreenState extends State<AnswerQuestionScreen> {
             Text(q.answer ?? '', style: theme.textTheme.bodyMedium),
         ],
       ),
+    );
+  }
+}
+
+/// Lets an astrologer edit the profile users see.
+class AstrologerProfileScreen extends StatefulWidget {
+  const AstrologerProfileScreen({super.key});
+
+  @override
+  State<AstrologerProfileScreen> createState() =>
+      _AstrologerProfileScreenState();
+}
+
+class _AstrologerProfileScreenState extends State<AstrologerProfileScreen> {
+  final _repo = QuestionRepository();
+  final _name = TextEditingController();
+  final _bio = TextEditingController();
+  final _languages = TextEditingController();
+  final _years = TextEditingController();
+  bool _loading = true;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _repo.myProfile().then(
+      (p) {
+        if (!mounted) return;
+        setState(() {
+          _loading = false;
+          if (p != null) {
+            _name.text = p.name;
+            _bio.text = p.bio;
+            _languages.text = p.languages;
+            _years.text = p.experienceYears?.toString() ?? '';
+          }
+        });
+      },
+      onError: (_) {
+        if (mounted) setState(() => _loading = false);
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    for (final c in [_name, _bio, _languages, _years]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final nav = Navigator.of(context);
+    if (_name.text.trim().isEmpty) return;
+    setState(() => _saving = true);
+    try {
+      await _repo.updateMyProfile(
+        AstrologerProfile(
+          name: _name.text.trim(),
+          bio: _bio.text.trim(),
+          languages: _languages.text.trim(),
+          experienceYears: int.tryParse(_years.text.trim()),
+        ),
+      );
+      nav.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('Profile saved')));
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not save the profile.')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    InputDecoration deco(String label, [String? hint]) => InputDecoration(
+      labelText: label,
+      hintText: hint,
+      border: const OutlineInputBorder(),
+    );
+    return Scaffold(
+      appBar: AppBar(title: const Text('My public profile')),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Text(
+                  'Users see this on the Ask an Astrologer screen, with your '
+                  'rating and number of answers.',
+                ),
+                const SizedBox(height: 16),
+                TextField(controller: _name, decoration: deco('Display name')),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _bio,
+                  maxLines: 4,
+                  maxLength: 1000,
+                  decoration: deco(
+                    'About you',
+                    'Your background, tradition and what you help with',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _languages,
+                  decoration: deco('Languages', 'Bengali, Hindi, English'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _years,
+                  keyboardType: TextInputType.number,
+                  decoration: deco('Years of experience'),
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _saving ? null : _save,
+                  child: const Text('Save'),
+                ),
+              ],
+            ),
     );
   }
 }

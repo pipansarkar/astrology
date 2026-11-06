@@ -4,6 +4,7 @@ import 'astro/ephemeris.dart';
 import 'backend/supabase_config.dart';
 import 'charts/chart_style_setting.dart';
 import 'notifications/push_service.dart';
+import 'settings/place_setting.dart';
 import 'screens/astrologer_desk_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/horoscope_screen.dart';
@@ -19,6 +20,7 @@ Future<void> main() async {
     Ephemeris.init(),
     initBackend(),
     ChartStyleSetting.load(),
+    PlaceSetting.load(),
   ]);
 
   PushService.onOpen = (target) {

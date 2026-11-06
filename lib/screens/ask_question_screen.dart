@@ -4,6 +4,7 @@ import '../backend/profile_repository.dart';
 import '../backend/question_repository.dart';
 import '../notifications/push_service.dart';
 import '../models/birth_details.dart';
+import '../widgets/format.dart';
 import 'birth_form_screen.dart';
 
 /// Write a question about a birth chart. Pops with `true` once submitted.
@@ -160,7 +161,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
               leading: const Icon(Icons.person_outline),
               title: Text(widget.details!.name),
               subtitle: Text(
-                '${loc.formatMediumDate(widget.details!.localDateTime)} · '
+                '${fmtDate(context, widget.details!.localDateTime)} · '
                 '${widget.details!.city.name}',
               ),
             )

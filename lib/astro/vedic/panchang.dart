@@ -121,3 +121,17 @@ class Panchang {
     );
   }
 }
+
+/// "Shukla Dwitiya", "Purnima", "Krishna Ashtami", "Amavasya" for tithi 1-30.
+String tithiFullName(int tithi) {
+  if (tithi == 15) return 'Purnima';
+  if (tithi == 30) return 'Amavasya';
+  return '${tithi <= 15 ? 'Shukla' : 'Krishna'} ${tithiNames[(tithi - 1) % 15]}';
+}
+
+/// Karana of half-tithi [k] (0-59 from the new moon).
+String karanaName(int k) {
+  if (k == 0) return 'Kimstughna';
+  if (k >= 57) return const ['Shakuni', 'Chatushpada', 'Naga'][k - 57];
+  return _movableKaranas[(k - 1) % 7];
+}

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../astro/kundli.dart';
 import '../backend/profile_repository.dart';
 import '../models/birth_details.dart';
+import '../widgets/format.dart';
 import 'chart_screen.dart';
 
 class SavedChartsScreen extends StatefulWidget {
@@ -42,7 +43,6 @@ class _SavedChartsScreenState extends State<SavedChartsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = MaterialLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('My charts')),
       body: FutureBuilder<List<BirthDetails>>(
@@ -81,7 +81,7 @@ class _SavedChartsScreenState extends State<SavedChartsScreen> {
                 return ListTile(
                   title: Text(d.name),
                   subtitle: Text(
-                    '${loc.formatMediumDate(d.localDateTime)} · ${d.city.name}',
+                    '${fmtDate(context, d.localDateTime)} · ${d.city.name}',
                   ),
                   trailing: IconButton(
                     tooltip: 'Delete',

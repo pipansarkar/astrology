@@ -3,14 +3,18 @@ import 'package:timezone/timezone.dart' as tz;
 
 bool _ready = false;
 
+/// Loads the time zone database once.
+void ensureTimeZones() {
+  if (_ready) return;
+  tzdata.initializeTimeZones();
+  _ready = true;
+}
+
 /// UTC offset in minutes of IANA zone [zone] at local clock time [local].
 /// Uses the full historical database, so e.g. India's +6:30 war time
 /// (1942-1945) and daylight saving abroad are handled.
 int utcOffsetMinutes(String zone, DateTime local) {
-  if (!_ready) {
-    tzdata.initializeTimeZones();
-    _ready = true;
-  }
+  ensureTimeZones();
   final t = tz.TZDateTime(
     tz.getLocation(zone),
     local.year,

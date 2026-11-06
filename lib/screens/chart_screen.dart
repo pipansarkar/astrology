@@ -10,6 +10,9 @@ import '../backend/supabase_config.dart';
 import '../charts/chart_style_setting.dart';
 import '../reports/kundli_pdf.dart';
 import '../widgets/kundli_chart.dart';
+import '../widgets/doshas_tab.dart';
+import '../widgets/transits_tab.dart';
+import '../widgets/format.dart';
 import 'horoscope_screen.dart';
 import 'ask_question_screen.dart';
 
@@ -74,7 +77,7 @@ class _ChartScreenState extends State<ChartScreen> {
   Widget build(BuildContext context) {
     final k = widget.kundli;
     return DefaultTabController(
-      length: 3,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(k.details.name),
@@ -120,15 +123,25 @@ class _ChartScreenState extends State<ChartScreen> {
                     ),
           ],
           bottom: const TabBar(
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
             tabs: [
               Tab(text: 'Chart'),
               Tab(text: 'Dasha'),
+              Tab(text: 'Doshas'),
+              Tab(text: 'Transits'),
               Tab(text: 'Panchang'),
             ],
           ),
         ),
         body: TabBarView(
-          children: [_ChartTab(k), _DashaTab(k), _PanchangTab(k)],
+          children: [
+            _ChartTab(k),
+            _DashaTab(k),
+            DoshasTab(kundli: k),
+            TransitsTab(kundli: k),
+            _PanchangTab(k),
+          ],
         ),
       ),
     );
@@ -148,7 +161,7 @@ class _ChartTab extends StatelessWidget {
     final d = k.details;
     final moon = k.planet(Body.moon);
     final when =
-        '${loc.formatMediumDate(d.localDateTime)}, '
+        '${fmtDate(context, d.localDateTime)}, '
         '${loc.formatTimeOfDay(TimeOfDay.fromDateTime(d.localDateTime))}';
     final m = k.manglikDosha;
 

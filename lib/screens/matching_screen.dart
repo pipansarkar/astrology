@@ -6,6 +6,7 @@ import '../astro/vedic/matching.dart';
 import '../backend/profile_repository.dart';
 import '../backend/supabase_config.dart';
 import '../models/birth_details.dart';
+import '../widgets/format.dart';
 import 'birth_form_screen.dart';
 
 /// Kundli matching (Ashtakoota Guna Milan) between two people.
@@ -155,7 +156,6 @@ class _PersonPickerState extends State<_PersonPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final loc = MaterialLocalizations.of(context);
     return SafeArea(
       child: FutureBuilder<List<BirthDetails>>(
         future: _saved,
@@ -188,7 +188,7 @@ class _PersonPickerState extends State<_PersonPicker> {
                 leading: const Icon(Icons.person_outline),
                 title: Text(d.name),
                 subtitle: Text(
-                  '${loc.formatMediumDate(d.localDateTime)} · ${d.city.name}',
+                  '${fmtDate(context, d.localDateTime)} · ${d.city.name}',
                 ),
                 onTap: () => Navigator.of(context).pop(d),
               ),

@@ -21,7 +21,13 @@ class Question {
     required this.answer,
     required this.answeredAt,
     required this.createdAt,
+    this.rating,
+    this.feedback,
   });
+
+  /// 1-5 stars given by the user, once answered.
+  final int? rating;
+  final String? feedback;
 
   final String id;
 
@@ -56,5 +62,7 @@ class Question {
         ? null
         : DateTime.parse(r['answered_at'] as String),
     createdAt: DateTime.parse(r['created_at'] as String),
+    rating: r['rating'] as int?,
+    feedback: r['feedback'] as String?,
   );
 }
