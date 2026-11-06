@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../astro/kundli.dart';
 import '../charts/chart_layout.dart';
 import '../charts/chart_style_setting.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 
 /// Draws a chart in any [ChartStyle]. "Asc" marks the ascendant's sign.
 class KundliChartPainter extends CustomPainter {
@@ -42,7 +44,11 @@ class KundliChartPainter extends CustomPainter {
       final isAsc = sign == ascendantSign;
       _text(
         canvas,
-        layout.signLabel(sign),
+        style == ChartStyle.north
+            ? digits(sign + 1)
+            : LanguageSetting.current == AppLanguage.en
+            ? layout.signLabel(sign)
+            : rashiName(sign),
         at(cell.label),
         s * 0.1,
         TextStyle(
@@ -53,7 +59,7 @@ class KundliChartPainter extends CustomPainter {
       );
 
       final labels = [
-        if (isAsc) 'Asc',
+        if (isAsc) tr('Asc'),
         for (final item in items)
           if (item.sign == sign) item.label,
       ];
@@ -165,7 +171,7 @@ class ChartStylePicker extends StatelessWidget {
       builder: (context, style, _) => SegmentedButton<ChartStyle>(
         segments: [
           for (final s in ChartStyle.values)
-            ButtonSegment(value: s, label: Text(chartStyleLabels[s]!)),
+            ButtonSegment(value: s, label: Text(tr(chartStyleLabels[s]!))),
         ],
         selected: {style},
         showSelectedIcon: false,

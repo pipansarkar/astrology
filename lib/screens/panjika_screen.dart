@@ -7,6 +7,8 @@ import '../data/place_time.dart';
 import '../settings/place_setting.dart';
 import '../widgets/format.dart';
 import '../widgets/place_picker.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 
 /// Full daily panjika for the chosen place, with day-by-day navigation.
 class PanjikaScreen extends StatefulWidget {
@@ -45,7 +47,7 @@ class _PanjikaScreenState extends State<PanjikaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Panjika'),
+        title: Text(tr('Panjika')),
         actions: const [PlaceButton()],
       ),
       body: ValueListenableBuilder<City>(
@@ -57,7 +59,7 @@ class _PanjikaScreenState extends State<PanjikaScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    tooltip: 'Previous day',
+                    tooltip: tr('Previous day'),
                     onPressed: () => _shift(-1),
                     icon: const Icon(Icons.chevron_left),
                   ),
@@ -68,7 +70,7 @@ class _PanjikaScreenState extends State<PanjikaScreen> {
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Next day',
+                    tooltip: tr('Next day'),
                     onPressed: () => _shift(1),
                     icon: const Icon(Icons.chevron_right),
                   ),
@@ -134,7 +136,11 @@ class _PanjikaBody extends StatelessWidget {
     final theme = Theme.of(context);
     final f = PlaceFormat(context, p.place);
 
-    List<Widget> spans(String label, List<Span> list) {
+    List<Widget> spans(
+      String label,
+      List<Span> list,
+      String Function(Span) name,
+    ) {
       final out = <Widget>[];
       for (var i = 0; i < list.length; i++) {
         final s = list[i];
@@ -142,10 +148,10 @@ class _PanjikaBody extends StatelessWidget {
         out.add(
           _Row(
             label: i == 0 ? label : '',
-            value: s.name,
+            value: name(s),
             trailing: isLast && i > 0
-                ? 'onwards'
-                : 'until ${f.timeOn(s.end, p.date)}',
+                ? tr('onwards')
+                : tr('until {time}', {'time': f.timeOn(s.end, p.date)}),
           ),
         );
         if (isLast) break;
@@ -163,17 +169,23 @@ class _PanjikaBody extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(p.bengali.label, style: theme.textTheme.headlineSmall),
+                Text(
+                  bengaliDateLabel(p.bengali),
+                  style: theme.textTheme.headlineSmall,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  '${p.lunarMonth.name} · ${p.isShukla ? 'Shukla' : 'Krishna'} '
-                  'paksha · ${_varas[p.weekday - 1]}',
+                  '${lunarMonthName(p.lunarMonth)} · ${pakshaName(p.isShukla)} · '
+                  '${varaName(p.weekday)}',
                   style: theme.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Vikram Samvat ${p.vikramSamvat} · Shaka ${p.shakaSamvat} · '
-                  '${p.ritu}',
+                  tr('Vikram Samvat {vs} · Shaka {shaka} · {ritu}', {
+                    'vs': digits(p.vikramSamvat),
+                    'shaka': digits(p.shakaSamvat),
+                    'ritu': rituName(p.sunSign),
+                  }),
                   style: theme.textTheme.bodySmall,
                 ),
               ],
@@ -189,68 +201,68 @@ class _PanjikaBody extends StatelessWidget {
               for (final fest in festivals)
                 Chip(
                   avatar: const Icon(Icons.celebration_outlined, size: 18),
-                  label: Text(fest.name),
+                  label: Text(tr(fest.name)),
                 ),
             ],
           ),
         ],
-        _Section('Sun and Moon'),
-        _Row(label: 'Sunrise', value: f.time(p.sunrise)),
-        _Row(label: 'Sunset', value: f.time(p.sunset)),
+        _Section(tr('Sun and Moon')),
+        _Row(label: tr('Sunrise'), value: f.time(p.sunrise)),
+        _Row(label: tr('Sunset'), value: f.time(p.sunset)),
         _Row(
-          label: 'Moonrise',
-          value: p.moonrise == null ? 'None today' : f.time(p.moonrise!),
+          label: tr('Moonrise'),
+          value: p.moonrise == null ? tr('None today') : f.time(p.moonrise!),
         ),
         _Row(
-          label: 'Moonset',
-          value: p.moonset == null ? 'None today' : f.time(p.moonset!),
+          label: tr('Moonset'),
+          value: p.moonset == null ? tr('None today') : f.time(p.moonset!),
         ),
         _Row(
-          label: 'Sun / Moon sign',
-          value: '${_signs[p.sunSign]} / ${_signs[p.moonSign]}',
+          label: tr('Sun / Moon sign'),
+          value: '${rashiName(p.sunSign)} / ${rashiName(p.moonSign)}',
         ),
-        _Section('Panchang'),
-        ...spans('Tithi', p.tithis),
-        ...spans('Nakshatra', p.nakshatras),
-        ...spans('Yoga', p.yogas),
-        ...spans('Karana', p.karanas),
-        _Section('Auspicious times'),
+        _Section(tr('Panchang')),
+        ...spans(tr('Tithi'), p.tithis, (s) => tithiName(s.index)),
+        ...spans(tr('Nakshatra'), p.nakshatras, (s) => nakshatraName(s.index)),
+        ...spans(tr('Yoga'), p.yogas, (s) => yogaName(s.index)),
+        ...spans(tr('Karana'), p.karanas, (s) => karanaNameL(s.name)),
+        _Section(tr('Auspicious times')),
         _Row(
-          label: 'Brahma Muhurta',
+          label: tr('Brahma Muhurta'),
           value: f.range(p.brahmaMuhurta.start, p.brahmaMuhurta.end),
         ),
         _Row(
-          label: 'Abhijit Muhurta',
+          label: tr('Abhijit Muhurta'),
           value: f.range(p.abhijit.start, p.abhijit.end),
           trailing: p.weekday == DateTime.wednesday
-              ? 'avoided on Wednesday'
+              ? tr('avoided on Wednesday')
               : null,
         ),
-        _Section('Inauspicious times'),
+        _Section(tr('Inauspicious times')),
         _Row(
-          label: 'Rahu Kaal',
+          label: tr('Rahu Kaal'),
           value: f.range(p.rahuKaal.start, p.rahuKaal.end),
           bad: true,
         ),
         _Row(
-          label: 'Yamaganda',
+          label: tr('Yamaganda'),
           value: f.range(p.yamaganda.start, p.yamaganda.end),
           bad: true,
         ),
         _Row(
-          label: 'Gulika Kaal',
+          label: tr('Gulika Kaal'),
           value: f.range(p.gulikaKaal.start, p.gulikaKaal.end),
           bad: true,
         ),
         for (final b in p.bhadra)
           _Row(
-            label: 'Bhadra (Vishti)',
+            label: tr('Bhadra (Vishti)'),
             value: '${f.timeOn(b.start, p.date)} – ${f.timeOn(b.end, p.date)}',
             bad: true,
           ),
         if (p.panchak != null)
           _Row(
-            label: 'Panchak',
+            label: tr('Panchak'),
             value:
                 '${f.timeOn(p.panchak!.start, p.date)} – '
                 '${f.timeOn(p.panchak!.end, p.date)}',
@@ -258,40 +270,18 @@ class _PanjikaBody extends StatelessWidget {
           ),
         const SizedBox(height: 16),
         Text(
-          'For ${p.place.label}. Calculated with the Swiss Ephemeris (Lahiri). '
-          'Bengali date follows the Bisuddha Siddhanta method; traditional '
-          'printed panjikas may differ by a day.',
+          tr(
+            'For {place}. Calculated with the Swiss Ephemeris (Lahiri). '
+            'Bengali date follows the Bisuddha Siddhanta method; traditional '
+            'printed panjikas may differ by a day.',
+            {'place': p.place.label},
+          ),
           style: theme.textTheme.bodySmall,
         ),
       ],
     );
   }
 }
-
-const _varas = [
-  'Somavar',
-  'Mangalvar',
-  'Budhvar',
-  'Brihaspativar',
-  'Shukravar',
-  'Shanivar',
-  'Ravivar',
-];
-
-const _signs = [
-  'Mesha',
-  'Vrishabha',
-  'Mithuna',
-  'Karka',
-  'Simha',
-  'Kanya',
-  'Tula',
-  'Vrishchika',
-  'Dhanu',
-  'Makara',
-  'Kumbha',
-  'Meena',
-];
 
 class _Section extends StatelessWidget {
   const _Section(this.title);

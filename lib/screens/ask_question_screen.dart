@@ -5,6 +5,7 @@ import '../backend/question_repository.dart';
 import '../notifications/push_service.dart';
 import '../models/birth_details.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
 import 'birth_form_screen.dart';
 
 /// Write a question about a birth chart. Pops with `true` once submitted.
@@ -61,7 +62,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         _selected ??= profiles.isEmpty ? null : profiles.first;
       });
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not connect. Try again.');
+      if (mounted) setState(() => _error = tr('Could not connect. Try again.'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -79,7 +80,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     final text = _text.text.trim();
     if (_selected == null) return;
     if (text.length < 10) {
-      setState(() => _error = 'Please write at least 10 characters.');
+      setState(() => _error = tr('Please write at least 10 characters.'));
       return;
     }
     setState(() {
@@ -92,11 +93,11 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
       await PushService.enable().catchError((_) => false);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Question sent to the astrologer')),
+        SnackBar(content: Text(tr('Question sent to the astrologer'))),
       );
       Navigator.of(context).pop(true);
     } catch (e) {
-      if (mounted) setState(() => _error = 'Could not send. Try again.');
+      if (mounted) setState(() => _error = tr('Could not send. Try again.'));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -119,13 +120,13 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
           Icon(Icons.lock_clock, size: 48, color: theme.colorScheme.primary),
           const SizedBox(height: 16),
           Text(
-            "You've used your free question",
+            tr("You've used your free question"),
             style: theme.textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Paid questions are coming soon.',
+          Text(
+            tr('Paid questions are coming soon.'),
             textAlign: TextAlign.center,
           ),
         ],
@@ -135,8 +136,8 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_error ?? 'Could not connect.'),
-            TextButton(onPressed: _load, child: const Text('Retry')),
+            Text(_error ?? tr('Could not connect.')),
+            TextButton(onPressed: _load, child: Text(tr('Retry'))),
           ],
         ),
       );
@@ -148,12 +149,12 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             margin: EdgeInsets.zero,
             child: ListTile(
               leading: const Icon(Icons.card_giftcard),
-              title: const Text('Your first question is free'),
-              subtitle: const Text('Answered within 24 hours'),
+              title: Text(tr('Your first question is free')),
+              subtitle: Text(tr('Answered within 24 hours')),
             ),
           ),
           const SizedBox(height: 16),
-          Text('About whom?', style: theme.textTheme.titleSmall),
+          Text(tr('About whom?'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           if (widget.details != null)
             ListTile(
@@ -169,7 +170,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             OutlinedButton.icon(
               onPressed: _addChart,
               icon: const Icon(Icons.add),
-              label: const Text('Create and save a birth chart first'),
+              label: Text(tr('Create and save a birth chart first')),
             )
           else ...[
             DropdownButtonFormField<BirthDetails>(
@@ -192,12 +193,12 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
               child: TextButton.icon(
                 onPressed: _addChart,
                 icon: const Icon(Icons.add),
-                label: const Text('Another person'),
+                label: Text(tr('Another person')),
               ),
             ),
           ],
           const SizedBox(height: 16),
-          Text('Your question', style: theme.textTheme.titleSmall),
+          Text(tr('Your question'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           TextField(
             controller: _text,
@@ -206,8 +207,8 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
             maxLines: 8,
             maxLength: 1000,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              hintText: 'e.g. When will I get a stable job?',
+            decoration: InputDecoration(
+              hintText: tr('e.g. When will I get a stable job?'),
               border: OutlineInputBorder(),
             ),
           ),
@@ -221,13 +222,15 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
                     dimension: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Send question'),
+                : Text(tr('Send question')),
           ),
           const SizedBox(height: 12),
           Text(
-            'Astrology offers guidance, not certainty. Please do not ask about '
-            'death, serious illness or legal cases; consult a professional '
-            'for those.',
+            tr(
+              'Astrology offers guidance, not certainty. Please do not ask about '
+              'death, serious illness or legal cases; consult a professional '
+              'for those.',
+            ),
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -235,7 +238,7 @@ class _AskQuestionScreenState extends State<AskQuestionScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ask a question')),
+      appBar: AppBar(title: Text(tr('Ask a question'))),
       body: body,
     );
   }

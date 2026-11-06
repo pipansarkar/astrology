@@ -4,6 +4,13 @@ A free Vedic astrology app built with Flutter and Supabase.
 
 ## Features
 
+- **Daily panjika**: Bengali date (Bangabda), sunrise and sunset, moonrise and moonset, tithi, nakshatra, yoga and karana with their end times, Rahu Kaal, Yamaganda, Gulika, Abhijit and Brahma muhurta, Bhadra, Panchak, lunar month, Vikram and Shaka samvat, and ritu, for any place and date
+- **Festivals and vrats**: Durga Puja, Kali Puja, Saraswati Puja, Poila Boishakh, Rath Yatra, Ekadashi, Purnima, Amavasya, Sankranti and more, computed for any year and place (checked against published 2025–26 dates)
+- **Muhurat finder**: auspicious windows for marriage, griha pravesh, annaprashan, namakaran, vehicle, property and business, optionally personalised (Chandrashtama, Tara)
+- **Doshas**: Mangal (with common cancellations), Kaal Sarp, Pitra, Guru Chandal and Grahan, plus a lifetime Sade Sati and Shani dhaiya timeline
+- **Transits**: the next 12 months of Jupiter, Saturn, Rahu and Mars sign changes, retrograde stations and eclipses, read from the Moon sign
+- **Numerology**: Mulank, Bhagyank and Chaldean name number
+- **Languages**: English, Bengali and Hindi, switchable in the app
 - **Free Kundli**: Rashi (D1) and Navamsa (D9) charts in North, South or East Indian style, planet positions with nakshatra and pada, house, retrograde status and dignity, plus a basic Manglik check
 - **Places worldwide**: about 37,600 places bundled offline (every Indian town over 1,000 people and world cities over 15,000) with historical time zones, including India's 1942–45 war time and daylight saving abroad. Coordinates can also be entered by hand
 - **Kundli Matching**: Ashtakoota Guna Milan (36 points) with Nadi, Bhakoot and Manglik notes
@@ -11,6 +18,7 @@ A free Vedic astrology app built with Flutter and Supabase.
 - **Vimshottari Dasha**: all Mahadashas and Antardashas, with the current period highlighted
 - **Panchang**: tithi, nakshatra, yoga, karana and vara, both at birth and for today
 - **Daily Horoscope**: calculated from the Moon's real position using Chandra Gochar (Moon's house from your rashi) and Tara Bala (today's nakshatra from your birth nakshatra)
+- **Trust**: a fixed visible price, a 24-hour answer promise, no fear-based selling, and public astrologer profiles with user ratings
 - **Ask an Astrologer**: users ask about a birth chart and an astrologer answers from an in-app desk that shows the chart and current dasha. The first question is free; paid questions (₹99) are prepared in the database but payments are not connected yet
 - **Reading assistant for astrologers**: works out the question's topic, then analyses the relevant houses, lords, significators, current dasha, Sade Sati and Jupiter/Saturn transits, and upcoming favourable periods. It drafts an answer for the astrologer to edit. It is rule-based, so it runs free and offline
 - **Accounts**: every user gets a guest account automatically (Supabase anonymous sign-in). They can turn it into an email and password or Google account at any time and keep their data. No verification email is sent
@@ -87,6 +95,17 @@ Horoscope texts are stored in the `horoscope_texts` table. You can edit them in 
 ```sh
 dart run tool/gen_horoscope_seed.dart > supabase/migrations/20261105000100_horoscope_texts.sql
 ```
+
+## Translations
+
+UI strings are wrapped in `tr('English text')` and translated in `tool/translations_bn.py` and `tool/translations_hi.py`. After changing text:
+
+```sh
+python3 -I tool/extract_tr_keys.py --missing   # list untranslated strings
+python3 -I tool/gen_strings.py                 # regenerate lib/l10n/strings_*.dart
+```
+
+Astrological names (signs, nakshatras, tithis and so on) are in `lib/l10n/names.dart`. The astrologer desk, the reading assistant, some generated dosha details and the PDF report stay in English.
 
 ## Tests
 

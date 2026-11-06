@@ -4,6 +4,7 @@ import '../astro/kundli.dart';
 import '../backend/profile_repository.dart';
 import '../models/birth_details.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
 import 'chart_screen.dart';
 
 class SavedChartsScreen extends StatefulWidget {
@@ -23,15 +24,15 @@ class _SavedChartsScreenState extends State<SavedChartsScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text('Delete ${d.name}?'),
+        title: Text(tr('Delete {name}?', {'name': d.name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child: const Text('Cancel'),
+            child: Text(tr('Cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Delete'),
+            child: Text(tr('Delete')),
           ),
         ],
       ),
@@ -44,7 +45,7 @@ class _SavedChartsScreenState extends State<SavedChartsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My charts')),
+      appBar: AppBar(title: Text(tr('My charts'))),
       body: FutureBuilder<List<BirthDetails>>(
         future: _future,
         builder: (context, snap) {
@@ -56,17 +57,17 @@ class _SavedChartsScreenState extends State<SavedChartsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Could not load charts'),
-                  TextButton(onPressed: _reload, child: const Text('Retry')),
+                  Text(tr('Could not load charts')),
+                  TextButton(onPressed: _reload, child: Text(tr('Retry'))),
                 ],
               ),
             );
           }
           final items = snap.data!;
           if (items.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'No saved charts yet.\nGenerate one and tap save.',
+                tr('No saved charts yet.\nGenerate one and tap save.'),
                 textAlign: TextAlign.center,
               ),
             );
@@ -84,7 +85,7 @@ class _SavedChartsScreenState extends State<SavedChartsScreen> {
                     '${fmtDate(context, d.localDateTime)} · ${d.city.name}',
                   ),
                   trailing: IconButton(
-                    tooltip: 'Delete',
+                    tooltip: tr('Delete'),
                     icon: const Icon(Icons.delete_outline),
                     onPressed: () => _delete(d),
                   ),

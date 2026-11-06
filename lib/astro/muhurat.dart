@@ -117,6 +117,8 @@ class MuhuratWindow {
     required this.end,
     required this.tithi,
     required this.nakshatra,
+    required this.tithiIndex,
+    required this.nakshatraIndex,
   });
 
   final DayPanjika day;
@@ -124,6 +126,10 @@ class MuhuratWindow {
   final DateTime end;
   final String tithi;
   final String nakshatra;
+
+  /// 1-30 and 0-26, for translated names.
+  final int tithiIndex;
+  final int nakshatraIndex;
 }
 
 /// Searches [days] days from [from] at [place]. Pass the person's natal
@@ -203,6 +209,8 @@ Future<List<MuhuratWindow>> findMuhurats(
               end: end,
               tithi: DayPanjika.at(p.tithis, start).name,
               nakshatra: DayPanjika.at(p.nakshatras, start).name,
+              tithiIndex: DayPanjika.at(p.tithis, start).index,
+              nakshatraIndex: DayPanjika.at(p.nakshatras, start).index,
             ),
           );
         }

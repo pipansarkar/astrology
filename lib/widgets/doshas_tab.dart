@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../astro/ephemeris.dart';
 import '../astro/kundli.dart';
 import '../astro/vedic/doshas.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 import 'format.dart';
 
 class DoshasTab extends StatefulWidget {
@@ -57,18 +59,21 @@ class _DoshasTabState extends State<DoshasTab>
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(d.name, style: theme.textTheme.titleSmall),
+                        child: Text(
+                          tr(d.name),
+                          style: theme.textTheme.titleSmall,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(d.summary),
+                  Text(tr(d.summary)),
                   for (final r in d.reasons)
                     Text('• $r', style: theme.textTheme.bodySmall),
                   if (d.present && d.remedy != null) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'Remedy: ${d.remedy}',
+                      tr('Remedy: {remedy}', {'remedy': tr(d.remedy!)}),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontStyle: FontStyle.italic,
                       ),
@@ -79,12 +84,17 @@ class _DoshasTabState extends State<DoshasTab>
             ),
           ),
         const SizedBox(height: 8),
-        Text('Sade Sati and Shani dhaiya', style: theme.textTheme.titleMedium),
+        Text(
+          tr('Sade Sati and Shani dhaiya'),
+          style: theme.textTheme.titleMedium,
+        ),
         const SizedBox(height: 4),
         Text(
-          'Saturn transiting the 12th, 1st and 2nd from your Moon '
-          '(${signNames[widget.kundli.planet(Body.moon).sign]}) is Sade Sati; '
-          'the 4th and 8th are the smaller dhaiya periods.',
+          tr(
+            'Saturn transiting the 12th, 1st and 2nd from your Moon ({sign}) is '
+            'Sade Sati; the 4th and 8th are the smaller dhaiya periods.',
+            {'sign': rashiName(widget.kundli.planet(Body.moon).sign)},
+          ),
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: 8),
@@ -109,10 +119,18 @@ class _DoshasTabState extends State<DoshasTab>
                     padding: const EdgeInsets.all(12),
                     child: Text(
                       current != null
-                          ? 'Now: ${shaniPhaseLabels[current.phase]} until '
-                                '${fmtDate(context, current.end)}.'
-                          : 'No Sade Sati or dhaiya now.'
-                                '${next == null ? '' : ' Next: ${shaniPhaseLabels[next.phase]} from ${fmtDate(context, next.start)}.'}',
+                          ? tr('Now: {phase} until {date}.', {
+                              'phase': tr(shaniPhaseLabels[current.phase]!),
+                              'date': fmtDate(context, current.end),
+                            })
+                          : [
+                              tr('No Sade Sati or dhaiya now.'),
+                              if (next != null)
+                                tr('Next: {phase} from {date}.', {
+                                  'phase': tr(shaniPhaseLabels[next.phase]!),
+                                  'date': fmtDate(context, next.start),
+                                }),
+                            ].join(' '),
                     ),
                   ),
                 ),
@@ -126,7 +144,7 @@ class _DoshasTabState extends State<DoshasTab>
                       color: p.contains(now) ? scheme.error : scheme.outline,
                     ),
                     title: Text(
-                      shaniPhaseLabels[p.phase]!,
+                      tr(shaniPhaseLabels[p.phase]!),
                       style: p.contains(now)
                           ? TextStyle(
                               color: scheme.error,
@@ -144,9 +162,11 @@ class _DoshasTabState extends State<DoshasTab>
         ),
         const SizedBox(height: 12),
         Text(
-          'Doshas follow popular definitions; traditions differ, and many '
-          'doshas are softened by other factors in the chart. For guidance '
-          'and entertainment purposes only.',
+          tr(
+            'Doshas follow popular definitions; traditions differ, and many '
+            'doshas are softened by other factors in the chart. For guidance '
+            'and entertainment purposes only.',
+          ),
           style: theme.textTheme.bodySmall,
         ),
       ],

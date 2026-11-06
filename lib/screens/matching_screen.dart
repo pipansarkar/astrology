@@ -7,6 +7,8 @@ import '../backend/profile_repository.dart';
 import '../backend/supabase_config.dart';
 import '../models/birth_details.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 import 'birth_form_screen.dart';
 
 /// Kundli matching (Ashtakoota Guna Milan) between two people.
@@ -25,7 +27,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
     final details = await showModalBottomSheet<BirthDetails>(
       context: context,
       showDragHandle: true,
-      builder: (_) => _PersonPicker(title: boy ? 'Boy' : 'Girl'),
+      builder: (_) => _PersonPicker(boy: boy),
     );
     if (details == null) return;
     setState(() {
@@ -42,7 +44,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
   Widget build(BuildContext context) {
     final boy = _boy, girl = _girl;
     return Scaffold(
-      appBar: AppBar(title: const Text('Kundli Matching')),
+      appBar: AppBar(title: Text(tr('Kundli Matching'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -50,7 +52,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
             children: [
               Expanded(
                 child: _PersonCard(
-                  role: 'Boy',
+                  role: tr('Boy'),
                   kundli: boy,
                   onTap: () => _choose(true),
                 ),
@@ -58,7 +60,7 @@ class _MatchingScreenState extends State<MatchingScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: _PersonCard(
-                  role: 'Girl',
+                  role: tr('Girl'),
                   kundli: girl,
                   onTap: () => _choose(false),
                 ),
@@ -69,10 +71,12 @@ class _MatchingScreenState extends State<MatchingScreen> {
           if (boy != null && girl != null)
             _Result(boy: boy, girl: girl)
           else
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(24),
               child: Text(
-                'Add both birth charts to see the Guna Milan score out of 36.',
+                tr(
+                  'Add both birth charts to see the Guna Milan score out of 36.',
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -115,7 +119,7 @@ class _PersonCard extends StatelessWidget {
                     Icon(Icons.add, color: theme.colorScheme.primary),
                     const SizedBox(width: 4),
                     Text(
-                      'Add',
+                      tr('Add'),
                       style: TextStyle(color: theme.colorScheme.primary),
                     ),
                   ],
@@ -127,8 +131,8 @@ class _PersonCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  '${signNamesSanskrit[k.planet(Body.moon).sign]} · '
-                  '${k.planet(Body.moon).nakshatraLabel}',
+                  '${rashiName(k.planet(Body.moon).sign)} · '
+                  '${nakshatraWithPada(k.planet(Body.moon))}',
                   style: theme.textTheme.bodySmall,
                 ),
               ],
@@ -142,8 +146,8 @@ class _PersonCard extends StatelessWidget {
 
 /// Saved charts (if any) plus "Enter details".
 class _PersonPicker extends StatefulWidget {
-  const _PersonPicker({required this.title});
-  final String title;
+  const _PersonPicker({required this.boy});
+  final bool boy;
 
   @override
   State<_PersonPicker> createState() => _PersonPickerState();
@@ -164,14 +168,20 @@ class _PersonPickerState extends State<_PersonPicker> {
           children: [
             ListTile(
               leading: const Icon(Icons.edit_outlined),
-              title: Text('Enter ${widget.title.toLowerCase()}\'s details'),
+              title: Text(
+                widget.boy
+                    ? tr("Enter the boy's details")
+                    : tr("Enter the girl's details"),
+              ),
               onTap: () async {
                 final nav = Navigator.of(context);
                 final d = await nav.push<BirthDetails>(
                   MaterialPageRoute(
                     builder: (_) => BirthFormScreen(
                       pickOnly: true,
-                      title: "${widget.title}'s birth details",
+                      title: widget.boy
+                          ? tr("Boy's birth details")
+                          : tr("Girl's birth details"),
                     ),
                   ),
                 );
@@ -223,11 +233,13 @@ class _Result extends StatelessWidget {
     final bm = boy.manglikDosha.isManglik, gm = girl.manglikDosha.isManglik;
     final manglikText = bm == gm
         ? (bm
-              ? 'Both are Manglik, so the dosha is considered balanced.'
-              : 'Neither is Manglik.')
-        : '${bm ? boy.details.name : girl.details.name} is Manglik and the '
-              'other is not. Traditionally this needs remedies or an '
-              "astrologer's review.";
+              ? tr('Both are Manglik, so the dosha is considered balanced.')
+              : tr('Neither is Manglik.'))
+        : tr(
+            "{name} is Manglik and the other is not. Traditionally this needs "
+            "remedies or an astrologer's review.",
+            {'name': bm ? boy.details.name : girl.details.name},
+          );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -239,11 +251,11 @@ class _Result extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  '${fmt(r.total)} / 36',
+                  '${digits(fmt(r.total))} / ${digits(36)}',
                   style: theme.textTheme.displaySmall?.copyWith(color: color),
                 ),
                 const SizedBox(height: 4),
-                Text(r.verdict, style: theme.textTheme.titleMedium),
+                Text(tr(r.verdict), style: theme.textTheme.titleMedium),
                 const SizedBox(height: 12),
                 LinearProgressIndicator(
                   value: r.total / 36,
@@ -259,10 +271,10 @@ class _Result extends StatelessWidget {
         for (final k in r.kootas)
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('${k.name} · ${k.meaning}'),
-            subtitle: Text(k.detail),
+            title: Text('${tr(k.name)} · ${tr(k.meaning)}'),
+            subtitle: Text(k.detail.split(' – ').map(tr).join(' – ')),
             trailing: Text(
-              '${fmt(k.score)} / ${fmt(k.max)}',
+              '${digits(fmt(k.score))} / ${digits(fmt(k.max))}',
               style: theme.textTheme.titleSmall?.copyWith(
                 color: k.score == 0 ? scheme.error : null,
               ),
@@ -272,25 +284,29 @@ class _Result extends StatelessWidget {
         if (r.nadiDosha)
           _Note(
             icon: Icons.warning_amber,
-            text:
-                'Nadi dosha: both have the same Nadi. Astrologers check for '
-                'cancellation (for example, same rashi with different '
-                'nakshatras) before deciding.',
+            text: tr(
+              'Nadi dosha: both have the same Nadi. Astrologers check for '
+              'cancellation (for example, same rashi with different '
+              'nakshatras) before deciding.',
+            ),
           ),
         if (r.bhakootDosha)
           _Note(
             icon: Icons.warning_amber,
-            text:
-                'Bhakoot dosha: the Moon signs are in a 2/12, 5/9 or 6/8 '
-                'relationship. It is often cancelled when the sign lords are '
-                'friends.',
+            text: tr(
+              'Bhakoot dosha: the Moon signs are in a 2/12, 5/9 or 6/8 '
+              'relationship. It is often cancelled when the sign lords are '
+              'friends.',
+            ),
           ),
         _Note(icon: Icons.local_fire_department_outlined, text: manglikText),
         const SizedBox(height: 12),
         Text(
-          '18 or more points is traditionally acceptable. Guna Milan is one '
-          'part of matching; a full reading also compares the 7th house, '
-          'Navamsa and dashas. For guidance and entertainment purposes only.',
+          tr(
+            '18 or more points is traditionally acceptable. Guna Milan is one '
+            'part of matching; a full reading also compares the 7th house, '
+            'Navamsa and dashas. For guidance and entertainment purposes only.',
+          ),
           style: theme.textTheme.bodySmall,
         ),
       ],

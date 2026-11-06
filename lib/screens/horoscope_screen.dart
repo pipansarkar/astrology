@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../astro/kundli.dart';
 import '../backend/horoscope_repository.dart';
 import '../horoscope/daily_horoscope.dart';
 import '../horoscope/default_texts.dart';
 import '../notifications/push_service.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 
 /// Daily horoscope from the Moon's real transit (Chandra Gochar) and, when
 /// the birth nakshatra is known, Tara Bala.
@@ -37,7 +38,10 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
   static const _prefKey = 'horoscope_rashi';
 
   int? _sign;
-  HoroscopeTexts _texts = HoroscopeTexts.defaults;
+  HoroscopeTexts _texts = () {
+    final (g, t) = defaultTextsFor(LanguageSetting.current.name);
+    return HoroscopeTexts(g, t);
+  }();
   bool _reminder = false;
 
   @override
@@ -48,7 +52,7 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
     });
     _sign = widget.moonSign;
     if (!widget.isPersonal) _loadSavedSign();
-    HoroscopeRepository().load().then((t) {
+    HoroscopeRepository().load(lang: LanguageSetting.current.name).then((t) {
       if (mounted) setState(() => _texts = t);
     });
   }
@@ -82,15 +86,18 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
       appBar: AppBar(
         title: Text(
           widget.personName == null
-              ? 'Daily Horoscope'
-              : 'Today for ${widget.personName}',
+              ? tr('Daily Horoscope')
+              : tr('Today for {name}', {'name': widget.personName}),
         ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (!widget.isPersonal) ...[
-            Text('Your Moon sign (rashi)', style: theme.textTheme.titleSmall),
+            Text(
+              tr('Your Moon sign (rashi)'),
+              style: theme.textTheme.titleSmall,
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -98,8 +105,8 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
               children: [
                 for (var i = 0; i < 12; i++)
                   ChoiceChip(
-                    label: Text(signNamesSanskrit[i]),
-                    tooltip: signNames[i],
+                    label: Text(rashiName(i)),
+                    tooltip: signShort(i),
                     selected: sign == i,
                     onSelected: (_) => _pick(i),
                   ),
@@ -107,8 +114,10 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              "Don't know your rashi? Generate a free kundli for a personal "
-              'reading.',
+              tr(
+                "Don't know your rashi? Generate a free kundli for a personal "
+                'reading.',
+              ),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 16),
@@ -117,8 +126,8 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               secondary: const Icon(Icons.notifications_outlined),
-              title: const Text('Morning reminder'),
-              subtitle: const Text('A notification at 7 AM every day'),
+              title: Text(tr('Morning reminder')),
+              subtitle: Text(tr('A notification at 7 AM every day')),
               value: _reminder,
               onChanged: (on) async {
                 final messenger = ScaffoldMessenger.of(context);
@@ -127,9 +136,13 @@ class _HoroscopeScreenState extends State<HoroscopeScreen> {
                 setState(() => _reminder = result);
                 if (on && !result) {
                   messenger.showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text(
-                        'Allow notifications in Android settings to get reminders.',
+                        tr(
+                          tr(
+                            'Allow notifications in Android settings to get reminders.',
+                          ),
+                        ),
                       ),
                     ),
                   );
@@ -177,9 +190,11 @@ class _Reading extends StatelessWidget {
       children: [
         _ReadingCard(
           tone: gocharTone[h.house - 1],
-          overline:
-              'Moon in ${signNamesSanskrit[h.moon.sign]} · '
-              '${_ordinal(h.house)} from ${signNamesSanskrit[moonSign]}',
+          overline: tr('Moon in {sign} · {nth} from {rashi}', {
+            'sign': rashiName(h.moon.sign),
+            'nth': ordinal(h.house),
+            'rashi': rashiName(moonSign),
+          }),
           title: gochar.title,
           body: gochar.body,
         ),
@@ -187,43 +202,46 @@ class _Reading extends StatelessWidget {
           const SizedBox(height: 12),
           _ReadingCard(
             tone: taraTone[h.taraIndex!],
-            overline: 'Tara Bala · ${nakshatraNames[h.moon.nakshatra]} today',
+            overline: tr('Tara Bala · {nakshatra} today', {
+              'nakshatra': nakshatraName(h.moon.nakshatra),
+            }),
             title: texts.tara[h.taraIndex!].title,
             body: texts.tara[h.taraIndex!].body,
           ),
         ],
         const SizedBox(height: 12),
         Text(
-          'Moon moves into ${signNamesSanskrit[nextSign]} on '
-          '${fmtDate(context, change)} at '
-          '${loc.formatTimeOfDay(TimeOfDay.fromDateTime(change))}. '
-          'The reading changes then.',
+          tr(
+            'Moon moves into {sign} on {date} at {time}. The reading changes then.',
+            {
+              'sign': rashiName(nextSign),
+              'date': fmtDate(context, change),
+              'time': loc.formatTimeOfDay(TimeOfDay.fromDateTime(change)),
+            },
+          ),
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: 20),
-        Text("Today's Panchang", style: theme.textTheme.titleMedium),
+        Text(tr("Today's Panchang"), style: theme.textTheme.titleMedium),
         const SizedBox(height: 4),
-        _PanchangRow('Tithi', h.panchang.tithiLabel),
-        _PanchangRow('Nakshatra', h.moon.nakshatraLabel),
-        _PanchangRow('Yoga', h.panchang.yogaName),
-        _PanchangRow('Karana', h.panchang.karana),
-        _PanchangRow('Vara', h.panchang.vara),
+        _PanchangRow(tr('Tithi'), tithiName(h.panchang.tithi)),
+        _PanchangRow(tr('Nakshatra'), nakshatraWithPada(h.moon)),
+        _PanchangRow(tr('Yoga'), yogaName(h.panchang.yoga)),
+        _PanchangRow(tr('Karana'), karanaNameL(h.panchang.karana)),
+        _PanchangRow(tr('Vara'), varaName(DateTime.now().weekday)),
         const SizedBox(height: 16),
         Text(
-          'Calculated now from the Moon\'s actual position (Swiss Ephemeris, '
-          'Lahiri). For guidance and entertainment purposes only.',
+          tr(
+            tr(
+              'Calculated now from the Moon\'s actual position (Swiss Ephemeris, '
+              'Lahiri). For guidance and entertainment purposes only.',
+            ),
+          ),
           style: theme.textTheme.bodySmall,
         ),
       ],
     );
   }
-
-  static String _ordinal(int n) => switch (n) {
-    1 => '1st',
-    2 => '2nd',
-    3 => '3rd',
-    _ => '${n}th',
-  };
 }
 
 class _ReadingCard extends StatelessWidget {
@@ -244,9 +262,9 @@ class _ReadingCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final (label, icon, color) = switch (tone) {
-      Tone.good => ('Favourable', Icons.wb_sunny, scheme.primary),
-      Tone.mixed => ('Mixed', Icons.cloud_queue, scheme.secondary),
-      Tone.caution => ('Take care', Icons.warning_amber, scheme.error),
+      Tone.good => (tr('Favourable'), Icons.wb_sunny, scheme.primary),
+      Tone.mixed => (tr('Mixed'), Icons.cloud_queue, scheme.secondary),
+      Tone.caution => (tr('Take care'), Icons.warning_amber, scheme.error),
     };
 
     return Card.outlined(

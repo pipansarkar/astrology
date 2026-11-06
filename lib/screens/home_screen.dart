@@ -11,6 +11,8 @@ import '../data/place_time.dart';
 import '../notifications/push_service.dart';
 import '../settings/place_setting.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 import 'account_screen.dart';
 import 'astrologer_desk_screen.dart';
 import 'birth_form_screen.dart';
@@ -80,48 +82,48 @@ class _HomeViewState extends State<_HomeView> {
       if (_isAstrologer)
         _Tile(
           Icons.assignment_ind_outlined,
-          'Astrologer desk',
+          tr('Astrologer desk'),
           () => _push(const AstrologerDeskScreen()),
         ),
       _Tile(
         Icons.wb_sunny_outlined,
-        'Daily Horoscope',
+        tr('Daily Horoscope'),
         () => _push(const HoroscopeScreen()),
       ),
       _Tile(
         Icons.grid_view_rounded,
-        'Free Kundli',
+        tr('Free Kundli'),
         () => _push(const BirthFormScreen()),
       ),
       _Tile(
         Icons.calendar_month_outlined,
-        'Festivals & Vrats',
+        tr('Festivals & Vrats'),
         () => _push(const FestivalsScreen()),
       ),
       _Tile(
         Icons.event_available_outlined,
-        'Muhurat',
+        tr('Muhurat'),
         () => _push(const MuhuratScreen()),
       ),
       _Tile(
         Icons.favorite_border,
-        'Kundli Matching',
+        tr('Kundli Matching'),
         () => _push(const MatchingScreen()),
       ),
       _Tile(
         Icons.pin_outlined,
-        'Numerology',
+        tr('Numerology'),
         () => _push(const NumerologyScreen()),
       ),
       if (backendEnabled) ...[
         _Tile(
           Icons.question_answer_outlined,
-          'Ask an Astrologer',
+          tr('Ask an Astrologer'),
           () => _push(const QuestionsScreen()),
         ),
         _Tile(
           Icons.bookmarks_outlined,
-          'My Charts',
+          tr('My Charts'),
           () => _push(const SavedChartsScreen()),
         ),
       ],
@@ -129,24 +131,50 @@ class _HomeViewState extends State<_HomeView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Astrology'),
+        title: Text(tr('Astrology')),
         actions: [
+          IconButton(
+            tooltip: tr('Language'),
+            icon: const Icon(Icons.translate),
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              showDragHandle: true,
+              builder: (sheet) => SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final l in AppLanguage.values)
+                      ListTile(
+                        title: Text(languageNames[l]!),
+                        trailing: l == LanguageSetting.current
+                            ? const Icon(Icons.check)
+                            : null,
+                        onTap: () {
+                          Navigator.pop(sheet);
+                          LanguageSetting.set(l);
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           if (backendEnabled && !hasEmailAccount)
             TextButton.icon(
               onPressed: () => _push(const AccountScreen()),
               icon: const Icon(Icons.login),
-              label: const Text('Sign in'),
+              label: Text(tr('Sign in')),
             ),
           if (backendEnabled && hasEmailAccount)
             PopupMenuButton<String>(
-              tooltip: 'Account',
+              tooltip: tr('Account'),
               icon: const Icon(Icons.account_circle_outlined),
               onSelected: (v) {
                 if (v == 'logout') _signOut();
               },
               itemBuilder: (_) => [
                 PopupMenuItem(enabled: false, child: Text(user.email ?? '')),
-                const PopupMenuItem(value: 'logout', child: Text('Sign out')),
+                PopupMenuItem(value: 'logout', child: Text(tr('Sign out'))),
               ],
             ),
         ],
@@ -269,7 +297,7 @@ class _TodayCardState extends State<_TodayCard> {
                     children: [
                       Expanded(
                         child: Text(
-                          p.bengali.label,
+                          bengaliDateLabel(p.bengali),
                           style: theme.textTheme.titleLarge,
                         ),
                       ),
@@ -281,7 +309,8 @@ class _TodayCardState extends State<_TodayCard> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${tithi.name} until ${f.time(tithi.end)} · ${nak.name}',
+                    '${tr('{tithi} until {time}', {'tithi': tithiName(tithi.index), 'time': f.time(tithi.end)})}'
+                    ' · ${nakshatraName(nak.index)}',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 8),
@@ -289,14 +318,19 @@ class _TodayCardState extends State<_TodayCard> {
                     spacing: 16,
                     runSpacing: 4,
                     children: [
-                      _Mini(Icons.wb_twilight, 'Sunrise ${f.time(p.sunrise)}'),
+                      _Mini(
+                        Icons.wb_twilight,
+                        tr('Sunrise {time}', {'time': f.time(p.sunrise)}),
+                      ),
                       _Mini(
                         Icons.nights_stay_outlined,
-                        'Sunset ${f.time(p.sunset)}',
+                        tr('Sunset {time}', {'time': f.time(p.sunset)}),
                       ),
                       _Mini(
                         Icons.block,
-                        'Rahu Kaal ${f.range(p.rahuKaal.start, p.rahuKaal.end)}',
+                        tr('Rahu Kaal {time}', {
+                          'time': f.range(p.rahuKaal.start, p.rahuKaal.end),
+                        }),
                         color: theme.colorScheme.error,
                       ),
                     ],
@@ -304,7 +338,7 @@ class _TodayCardState extends State<_TodayCard> {
                   if (fest.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
-                      '🎉 ${fest.map((x) => x.name).join(' · ')}',
+                      '🎉 ${fest.map((x) => tr(x.name)).join(' · ')}',
                       style: theme.textTheme.titleSmall?.copyWith(
                         color: theme.colorScheme.primary,
                       ),
@@ -312,7 +346,9 @@ class _TodayCardState extends State<_TodayCard> {
                   ],
                   const SizedBox(height: 4),
                   Text(
-                    '${p.place.name} · Tap for full panjika',
+                    tr('{place} · Tap for full panjika', {
+                      'place': p.place.name,
+                    }),
                     style: theme.textTheme.bodySmall,
                   ),
                 ],

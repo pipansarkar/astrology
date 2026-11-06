@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/cities.dart';
 import '../data/place_time.dart';
+import '../l10n/l10n.dart';
 
 /// Formats UTC instants as local clock times at a place (not the phone's
 /// time zone), e.g. "05:13" or "5:13 AM" per the phone's setting.
@@ -36,7 +37,7 @@ class PlaceFormat {
 
 /// "Aug 15, 1995" (always with the year, unlike formatMediumDate).
 String fmtDate(BuildContext context, DateTime d) =>
-    '${MaterialLocalizations.of(context).formatShortMonthDay(d)}, ${d.year}';
+    '${MaterialLocalizations.of(context).formatShortMonthDay(d)}, ${digits(d.year)}';
 
 String fmtFullDate(BuildContext context, DateTime d) =>
     MaterialLocalizations.of(context).formatFullDate(d);

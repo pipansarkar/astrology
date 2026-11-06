@@ -13,14 +13,16 @@ class HoroscopeTexts {
 /// built-in English texts for anything missing or when offline.
 class HoroscopeRepository {
   Future<HoroscopeTexts> load({String lang = 'en'}) async {
-    if (!backendEnabled) return HoroscopeTexts.defaults;
+    final (dg, dt) = defaultTextsFor(lang);
+    final defaults = HoroscopeTexts(dg, dt);
+    if (!backendEnabled) return defaults;
     try {
       final rows = await supabase
           .from('horoscope_texts')
           .select('kind, key, title, body')
           .eq('lang', lang);
-      final gochar = [...defaultGochar];
-      final tara = [...defaultTara];
+      final gochar = [...dg];
+      final tara = [...dt];
       for (final r in rows) {
         final key = r['key'] as int;
         final text = HoroscopeText(r['title'] as String, r['body'] as String);
@@ -32,7 +34,7 @@ class HoroscopeRepository {
       }
       return HoroscopeTexts(gochar, tara);
     } catch (_) {
-      return HoroscopeTexts.defaults;
+      return defaults;
     }
   }
 }

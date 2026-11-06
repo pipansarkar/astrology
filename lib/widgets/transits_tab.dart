@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../astro/ephemeris.dart';
 import '../astro/kundli.dart';
 import '../astro/transits.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 import 'format.dart';
 
 /// The next 12 months of transits, read from the person's Moon sign.
@@ -45,8 +47,9 @@ class _TransitsTabState extends State<TransitsTab>
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Next 12 months, counted from your Moon sign '
-              '(${signNames[moon]}).',
+              tr('Next 12 months, counted from your Moon sign ({sign}).', {
+                'sign': rashiName(moon),
+              }),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 8),
@@ -66,26 +69,30 @@ class _TransitsTabState extends State<TransitsTab>
                     _ => scheme.outline,
                   },
                 ),
-                title: Text(e.title),
+                title: Text(_title(e)),
                 subtitle: Text(
                   [
                     fmtDate(context, e.time.toLocal()),
                     if (e.houseFromMoon != null)
-                      '${_ord(e.houseFromMoon!)} from your Moon: '
-                          '${switch (e.tone) {
-                            1 => 'favourable',
-                            -1 => 'challenging',
-                            _ => 'mixed',
-                          }}',
+                      tr('{nth} from your Moon: {tone}', {
+                        'nth': ordinal(e.houseFromMoon!),
+                        'tone': switch (e.tone) {
+                          1 => tr('favourable'),
+                          -1 => tr('challenging'),
+                          _ => tr('mixed'),
+                        },
+                      }),
                     if (e.kind == TransitKind.eclipse)
-                      'Visibility depends on location',
+                      tr('Visibility depends on location'),
                   ].join(' · '),
                 ),
               ),
             const SizedBox(height: 8),
             Text(
-              'Favourable houses follow classical gochar rules (e.g. Jupiter '
-              'in the 2nd, 5th, 7th, 9th or 11th from the Moon).',
+              tr(
+                'Favourable houses follow classical gochar rules (e.g. Jupiter '
+                'in the 2nd, 5th, 7th, 9th or 11th from the Moon).',
+              ),
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -94,10 +101,24 @@ class _TransitsTabState extends State<TransitsTab>
     );
   }
 
-  static String _ord(int n) => switch (n) {
-    1 => '1st',
-    2 => '2nd',
-    3 => '3rd',
-    _ => '${n}th',
-  };
+  static String _title(TransitEvent e) {
+    final b = e.body;
+    return switch (e.kind) {
+      TransitKind.ingress when b == Body.rahu => tr(
+        'Rahu enters {sign}, Ketu enters {sign2}',
+        {'sign': rashiName(e.sign!), 'sign2': rashiName((e.sign! + 6) % 12)},
+      ),
+      TransitKind.ingress => tr('{planet} enters {sign}', {
+        'planet': planetName(b!),
+        'sign': rashiName(e.sign!),
+      }),
+      TransitKind.retrograde => tr('{planet} turns retrograde', {
+        'planet': planetName(b!),
+      }),
+      TransitKind.direct => tr('{planet} turns direct', {
+        'planet': planetName(b!),
+      }),
+      TransitKind.eclipse => tr(e.title),
+    };
+  }
 }

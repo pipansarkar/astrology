@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'astro/ephemeris.dart';
 import 'backend/supabase_config.dart';
 import 'charts/chart_style_setting.dart';
+import 'l10n/l10n.dart';
 import 'notifications/push_service.dart';
 import 'settings/place_setting.dart';
 import 'screens/astrologer_desk_screen.dart';
@@ -21,6 +23,7 @@ Future<void> main() async {
     initBackend(),
     ChartStyleSetting.load(),
     PlaceSetting.load(),
+    LanguageSetting.load(),
   ]);
 
   PushService.onOpen = (target) {
@@ -47,23 +50,31 @@ class AstrologyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const seed = Color(0xFF4A2C82); // deep indigo
-    return MaterialApp(
-      title: 'Astrology',
-      debugShowCheckedModeBanner: false,
-      navigatorKey: navigatorKey,
-      scaffoldMessengerKey: messengerKey,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: seed),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seed,
-          brightness: Brightness.dark,
+    return ValueListenableBuilder<AppLanguage>(
+      valueListenable: LanguageSetting.notifier,
+      builder: (context, lang, _) => MaterialApp(
+        // Rebuild everything when the language changes.
+        key: ValueKey(lang),
+        title: 'Astrology',
+        locale: Locale(lang.name),
+        supportedLocales: const [Locale('en'), Locale('bn'), Locale('hi')],
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey,
+        scaffoldMessengerKey: messengerKey,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: seed),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: seed,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
+        ),
+        home: const HomeScreen(),
       ),
-      home: const HomeScreen(),
     );
   }
 }

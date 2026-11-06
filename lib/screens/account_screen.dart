@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../backend/google_auth.dart';
 import '../backend/supabase_config.dart';
+import '../l10n/l10n.dart';
 
 /// Email + password account. No verification email is sent.
 ///
@@ -36,10 +37,10 @@ class _AccountScreenState extends State<AccountScreen> {
   String? _validate() {
     final email = _email.text.trim();
     if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
-      return 'Enter a valid email address';
+      return tr('Enter a valid email address');
     }
     if (_password.text.length < 8) {
-      return 'Password must be at least 8 characters';
+      return tr('Password must be at least 8 characters');
     }
     return null;
   }
@@ -76,7 +77,9 @@ class _AccountScreenState extends State<AccountScreen> {
     } on AuthException catch (e) {
       setState(() => _error = _friendly(e));
     } catch (_) {
-      setState(() => _error = 'Something went wrong. Check your connection.');
+      setState(
+        () => _error = tr('Something went wrong. Check your connection.'),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -93,7 +96,7 @@ class _AccountScreenState extends State<AccountScreen> {
     } on AuthException catch (e) {
       setState(() => _error = _friendly(e));
     } catch (_) {
-      setState(() => _error = 'Google sign-in failed. Try again.');
+      setState(() => _error = tr('Google sign-in failed. Try again.'));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -102,13 +105,13 @@ class _AccountScreenState extends State<AccountScreen> {
   String _friendly(AuthException e) {
     final m = e.message.toLowerCase();
     if (m.contains('already') || e.code == 'email_exists') {
-      return 'An account with this email already exists. Choose "Sign in".';
+      return tr('An account with this email already exists. Choose "Sign in".');
     }
     if (m.contains('invalid login') || e.code == 'invalid_credentials') {
-      return 'Wrong email or password.';
+      return tr('Wrong email or password.');
     }
     if (m.contains('weak') || e.code == 'weak_password') {
-      return 'Choose a stronger password.';
+      return tr('Choose a stronger password.');
     }
     return e.message;
   }
@@ -117,7 +120,7 @@ class _AccountScreenState extends State<AccountScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Account')),
+      appBar: AppBar(title: Text(tr('Account'))),
       body: AutofillGroup(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -126,18 +129,18 @@ class _AccountScreenState extends State<AccountScreen> {
               OutlinedButton.icon(
                 onPressed: _busy ? null : _google,
                 icon: const Icon(Icons.account_circle),
-                label: const Text('Continue with Google'),
+                label: Text(tr('Continue with Google')),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size.fromHeight(48),
                 ),
               ),
               const SizedBox(height: 16),
-              const Row(
+              Row(
                 children: [
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Text('or with email'),
+                    child: Text(tr('or with email')),
                   ),
                   Expanded(child: Divider()),
                 ],
@@ -145,9 +148,9 @@ class _AccountScreenState extends State<AccountScreen> {
               const SizedBox(height: 16),
             ],
             SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(value: true, label: Text('Create account')),
-                ButtonSegment(value: false, label: Text('Sign in')),
+              segments: [
+                ButtonSegment(value: true, label: Text(tr('Create account'))),
+                ButtonSegment(value: false, label: Text(tr('Sign in'))),
               ],
               selected: {_creating},
               onSelectionChanged: _busy
@@ -160,11 +163,15 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(height: 16),
             Text(
               _creating
-                  ? 'Keep your charts and questions safe, even if you change '
-                        'phones. Your current charts and questions move into '
-                        'the new account.'
-                  : 'Sign in to your existing account. Charts saved on this '
-                        'phone without an account will not be moved.',
+                  ? tr(
+                      'Keep your charts and questions safe, even if you change '
+                      'phones. Your current charts and questions move into '
+                      'the new account.',
+                    )
+                  : tr(
+                      'Sign in to your existing account. Charts saved on this '
+                      'phone without an account will not be moved.',
+                    ),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -173,8 +180,8 @@ class _AccountScreenState extends State<AccountScreen> {
               enabled: !_busy,
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
-              decoration: const InputDecoration(
-                labelText: 'Email',
+              decoration: InputDecoration(
+                labelText: tr('Email'),
                 border: OutlineInputBorder(),
               ),
             ),
@@ -188,11 +195,13 @@ class _AccountScreenState extends State<AccountScreen> {
               ],
               onSubmitted: (_) => _submit(),
               decoration: InputDecoration(
-                labelText: 'Password',
-                helperText: _creating ? 'At least 8 characters' : null,
+                labelText: tr('Password'),
+                helperText: _creating ? tr('At least 8 characters') : null,
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  tooltip: _showPassword ? 'Hide password' : 'Show password',
+                  tooltip: _showPassword
+                      ? tr('Hide password')
+                      : tr('Show password'),
                   icon: Icon(
                     _showPassword ? Icons.visibility_off : Icons.visibility,
                   ),
@@ -213,7 +222,7 @@ class _AccountScreenState extends State<AccountScreen> {
                       dimension: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_creating ? 'Create account' : 'Sign in'),
+                  : Text(_creating ? tr('Create account') : tr('Sign in')),
             ),
           ],
         ),

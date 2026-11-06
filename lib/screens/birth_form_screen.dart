@@ -6,6 +6,7 @@ import '../data/city_search.dart';
 import '../data/timezones.dart';
 import '../models/birth_details.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
 import 'chart_screen.dart';
 
 /// Birth details form.
@@ -78,7 +79,7 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
     if (lat.abs() > 90 || lon.abs() > 180) return null;
     return City(
       '${lat.toStringAsFixed(2)}°, ${lon.toStringAsFixed(2)}°',
-      'Custom place',
+      tr('Custom place'),
       lat,
       lon,
       country: 'Custom',
@@ -121,7 +122,7 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
     final errorColor = Theme.of(context).colorScheme.error;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title ?? 'Birth details')),
+      appBar: AppBar(title: Text(widget.title ?? tr('Birth details'))),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -130,27 +131,27 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
             TextFormField(
               controller: _nameController,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(
-                labelText: 'Name',
+              decoration: InputDecoration(
+                labelText: tr('Name'),
                 border: OutlineInputBorder(),
               ),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Enter a name' : null,
+                  (v == null || v.trim().isEmpty) ? tr('Enter a name') : null,
             ),
             const SizedBox(height: 16),
             _PickerTile(
               icon: Icons.calendar_today,
-              label: 'Date of birth',
+              label: tr('Date of birth'),
               value: _date == null ? null : fmtDate(context, _date!),
-              error: _submitted && _date == null ? 'Pick a date' : null,
+              error: _submitted && _date == null ? tr('Pick a date') : null,
               onTap: _pickDate,
             ),
             const SizedBox(height: 16),
             _PickerTile(
               icon: Icons.access_time,
-              label: 'Time of birth',
+              label: tr('Time of birth'),
               value: _time?.format(context),
-              error: _submitted && _time == null ? 'Pick a time' : null,
+              error: _submitted && _time == null ? tr('Pick a time') : null,
               onTap: _pickTime,
             ),
             const SizedBox(height: 16),
@@ -163,15 +164,15 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
                   return TextFormField(
                     controller: controller,
                     focusNode: focusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'Place of birth',
-                      hintText: 'Town or city, in India or abroad',
+                    decoration: InputDecoration(
+                      labelText: tr('Place of birth'),
+                      hintText: tr('Town or city, in India or abroad'),
                       prefixIcon: Icon(Icons.place_outlined),
                       border: OutlineInputBorder(),
                     ),
                     validator: (_) =>
                         (_city == null || controller.text != _city!.label)
-                        ? 'Pick a place from the list'
+                        ? tr('Pick a place from the list')
                         : null,
                   );
                 },
@@ -186,9 +187,9 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
                         signed: true,
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Latitude',
-                        hintText: '22.57 (N +, S −)',
+                      decoration: InputDecoration(
+                        labelText: tr('Latitude'),
+                        hintText: tr('22.57 (N +, S −)'),
                         border: OutlineInputBorder(),
                       ),
                       validator: (v) {
@@ -205,9 +206,9 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
                         signed: true,
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'Longitude',
-                        hintText: '88.36 (E +, W −)',
+                      decoration: InputDecoration(
+                        labelText: tr('Longitude'),
+                        hintText: tr('88.36 (E +, W −)'),
                         border: OutlineInputBorder(),
                       ),
                       validator: (v) {
@@ -223,9 +224,9 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _offset,
-                decoration: const InputDecoration(
-                  labelText: 'UTC offset at birth',
-                  hintText: '5:30 for India, -5 for New York (winter)',
+                decoration: InputDecoration(
+                  labelText: tr('UTC offset at birth'),
+                  hintText: tr('5:30 for India, -5 for New York (winter)'),
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) =>
@@ -238,8 +239,8 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
                 onPressed: () => setState(() => _manual = !_manual),
                 child: Text(
                   _manual
-                      ? 'Search for a place instead'
-                      : "Can't find the place? Enter coordinates",
+                      ? tr('Search for a place instead')
+                      : tr("Can't find the place? Enter coordinates"),
                 ),
               ),
             ),
@@ -248,14 +249,18 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
               onPressed: _submit,
               icon: Icon(widget.pickOnly ? Icons.check : Icons.auto_awesome),
               label: Text(
-                widget.pickOnly ? 'Use these details' : 'Generate Kundli',
+                widget.pickOnly
+                    ? tr('Use these details')
+                    : tr('Generate Kundli'),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: Text(
-                'Place data © GeoNames (geonames.org), CC BY 4.0. Time zones '
-                'include historical changes such as India\'s 1942–45 war time.',
+                tr(
+                  'Place data © GeoNames (geonames.org), CC BY 4.0. Time zones '
+                  'include historical changes such as India\'s 1942–45 war time.',
+                ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -263,7 +268,7 @@ class _BirthFormScreenState extends State<BirthFormScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
-                  'Choose the place from the suggestions.',
+                  tr('Choose the place from the suggestions.'),
                   style: TextStyle(color: errorColor),
                 ),
               ),

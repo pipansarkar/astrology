@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../backend/question_repository.dart';
 import '../models/question.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
 import 'ask_question_screen.dart';
 
 String formatRupees(int paise) => '₹${(paise / 100).toStringAsFixed(0)}';
@@ -43,7 +44,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not save your rating.')),
+          SnackBar(content: Text(tr('Could not save your rating.'))),
         );
       }
     }
@@ -52,11 +53,11 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ask an Astrologer')),
+      appBar: AppBar(title: Text(tr('Ask an Astrologer'))),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _ask,
         icon: const Icon(Icons.edit_outlined),
-        label: const Text('Ask a question'),
+        label: Text(tr('Ask a question')),
       ),
       body: FutureBuilder<List<Question>>(
         future: _future,
@@ -66,7 +67,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
           }
           if (snap.hasError) {
             return _Retry(
-              message: 'Could not load questions',
+              message: tr('Could not load questions'),
               onRetry: _reload,
             );
           }
@@ -116,15 +117,17 @@ class _Intro extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Ask an experienced astrologer',
+            tr('Ask an experienced astrologer'),
             style: theme.textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Ask one question about career, marriage, health, money or '
-            'family. The astrologer studies your birth chart and current '
-            'dasha and replies within 24 hours. Your first question is free.',
+          Text(
+            tr(
+              'Ask one question about career, marriage, health, money or '
+              'family. The astrologer studies your birth chart and current '
+              'dasha and replies within 24 hours. Your first question is free.',
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -158,27 +161,37 @@ class _Promise extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Our promise', style: theme.textTheme.titleMedium),
+            Text(tr('Our promise'), style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             item(
               Icons.sell_outlined,
-              'One fixed price per question, shown before you ask. First question free. No hidden charges, no per-minute billing.',
+              tr(
+                'One fixed price per question, shown before you ask. First question free. No hidden charges, no per-minute billing.',
+              ),
             ),
             item(
               Icons.timer_outlined,
-              'An answer within 24 hours. If we miss it, a paid question is refunded in full.',
+              tr(
+                'An answer within 24 hours. If we miss it, a paid question is refunded in full.',
+              ),
             ),
             item(
               Icons.block_outlined,
-              'No fear-based predictions and no pressure to buy gemstones or costly pujas.',
+              tr(
+                'No fear-based predictions and no pressure to buy gemstones or costly pujas.',
+              ),
             ),
             item(
               Icons.lock_outline,
-              'Your birth details and questions are private and seen only by the astrologer.',
+              tr(
+                'Your birth details and questions are private and seen only by the astrologer.',
+              ),
             ),
             item(
               Icons.star_outline,
-              'Rate every answer. Ratings are shown publicly on the astrologer\'s profile.',
+              tr(
+                'Rate every answer. Ratings are shown publicly on the astrologer\'s profile.',
+              ),
             ),
           ],
         ),
@@ -202,7 +215,7 @@ class _Astrologers extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Our astrologers', style: theme.textTheme.titleMedium),
+            Text(tr('Our astrologers'), style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
             for (final a in list)
               Card.outlined(
@@ -226,7 +239,9 @@ class _Astrologers extends StatelessWidget {
                                 Text(
                                   [
                                     if (a.experienceYears != null)
-                                      '${a.experienceYears} years experience',
+                                      tr('{n} years experience', {
+                                        'n': digits(a.experienceYears!),
+                                      }),
                                     if (a.languages.isNotEmpty) a.languages,
                                   ].join(' · '),
                                   style: theme.textTheme.bodySmall,
@@ -243,10 +258,19 @@ class _Astrologers extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         a.ratingCount == 0
-                            ? '${a.answered} answered · no ratings yet'
-                            : '★ ${a.ratingAvg!.toStringAsFixed(1)} from '
-                                  '${a.ratingCount} rating${a.ratingCount == 1 ? '' : 's'} · '
-                                  '${a.answered} answered',
+                            ? tr('{n} answered · no ratings yet', {
+                                'n': digits(a.answered),
+                              })
+                            : tr(
+                                '★ {avg} from {count} ratings · {n} answered',
+                                {
+                                  'avg': digits(
+                                    a.ratingAvg!.toStringAsFixed(1),
+                                  ),
+                                  'count': digits(a.ratingCount),
+                                  'n': digits(a.answered),
+                                },
+                              ),
                         style: theme.textTheme.labelLarge,
                       ),
                     ],
@@ -275,13 +299,13 @@ class _QuestionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final (label, color) = switch (q.status) {
-      QuestionStatus.answered => ('Answered', scheme.primary),
-      QuestionStatus.open => ('Waiting for astrologer', scheme.tertiary),
+      QuestionStatus.answered => (tr('Answered'), scheme.primary),
+      QuestionStatus.open => (tr('Waiting for astrologer'), scheme.tertiary),
       QuestionStatus.awaitingPayment => (
-        'Payment pending · ${formatRupees(q.pricePaise)}',
+        tr('Payment pending · {price}', {'price': formatRupees(q.pricePaise)}),
         scheme.secondary,
       ),
-      QuestionStatus.refunded => ('Refunded', scheme.outline),
+      QuestionStatus.refunded => (tr('Refunded'), scheme.outline),
     };
 
     return Card.outlined(
@@ -315,14 +339,14 @@ class _QuestionCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Rate this answer',
+                      tr('Rate this answer'),
                       style: theme.textTheme.labelMedium,
                     ),
                     const Spacer(),
                     for (var s = 1; s <= 5; s++)
                       IconButton(
                         visualDensity: VisualDensity.compact,
-                        tooltip: '$s star${s == 1 ? '' : 's'}',
+                        tooltip: tr('{n} of 5 stars', {'n': digits(s)}),
                         onPressed: () => onRate(s),
                         icon: const Icon(Icons.star_border),
                       ),
@@ -338,14 +362,17 @@ class _QuestionCard extends StatelessWidget {
                         color: scheme.primary,
                       ),
                     const SizedBox(width: 8),
-                    Text('Thanks for rating', style: theme.textTheme.bodySmall),
+                    Text(
+                      tr('Thanks for rating'),
+                      style: theme.textTheme.bodySmall,
+                    ),
                   ],
                 ),
             ],
             if (q.status == QuestionStatus.open) ...[
               const SizedBox(height: 8),
               Text(
-                'You will see the answer here within 24 hours.',
+                tr('You will see the answer here within 24 hours.'),
                 style: theme.textTheme.bodySmall,
               ),
             ],
@@ -354,7 +381,7 @@ class _QuestionCard extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: onDelete,
-                  child: const Text('Remove'),
+                  child: Text(tr('Remove')),
                 ),
               ),
           ],
@@ -389,19 +416,19 @@ class _FeedbackDialogState extends State<_FeedbackDialog> {
         controller: _text,
         maxLength: 500,
         maxLines: 3,
-        decoration: const InputDecoration(
-          hintText: 'Anything to add? (optional)',
+        decoration: InputDecoration(
+          hintText: tr('Anything to add? (optional)'),
           border: OutlineInputBorder(),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: Text(tr('Cancel')),
         ),
         FilledButton(
           onPressed: () => Navigator.pop(context, _text.text),
-          child: const Text('Submit'),
+          child: Text(tr('Submit')),
         ),
       ],
     );
@@ -419,7 +446,7 @@ class _Retry extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(message),
-        TextButton(onPressed: onRetry, child: const Text('Retry')),
+        TextButton(onPressed: onRetry, child: Text(tr('Retry'))),
       ],
     ),
   );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../numerology/numerology.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
 
 class NumerologyScreen extends StatefulWidget {
   const NumerologyScreen({super.key});
@@ -27,7 +28,7 @@ class _NumerologyScreenState extends State<NumerologyScreen> {
     final nameNo = nameNumber(_name.text);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Numerology')),
+      appBar: AppBar(title: Text(tr('Numerology'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -35,8 +36,8 @@ class _NumerologyScreenState extends State<NumerologyScreen> {
             controller: _name,
             textCapitalization: TextCapitalization.words,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              labelText: 'Full name (in English letters)',
+            decoration: InputDecoration(
+              labelText: tr('Full name (in English letters)'),
               border: OutlineInputBorder(),
             ),
           ),
@@ -53,31 +54,41 @@ class _NumerologyScreenState extends State<NumerologyScreen> {
               if (d != null) setState(() => _dob = d);
             },
             icon: const Icon(Icons.calendar_today),
-            label: Text(dob == null ? 'Date of birth' : fmtDate(context, dob)),
+            label: Text(
+              dob == null ? tr('Date of birth') : fmtDate(context, dob),
+            ),
           ),
           if (dob != null) ...[
             const SizedBox(height: 20),
             Row(
               children: [
-                Expanded(child: _Big('Mulank', mulank(dob), 'Birth number')),
+                Expanded(
+                  child: _Big(tr('Mulank'), mulank(dob), tr('Birth number')),
+                ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _Big('Bhagyank', bhagyank(dob), 'Destiny number'),
+                  child: _Big(
+                    tr('Bhagyank'),
+                    bhagyank(dob),
+                    tr('Destiny number'),
+                  ),
                 ),
                 if (nameNo != null) ...[
                   const SizedBox(width: 8),
-                  Expanded(child: _Big('Name', nameNo, 'Name number')),
+                  Expanded(child: _Big(tr('Name'), nameNo, tr('Name number'))),
                 ],
               ],
             ),
             const SizedBox(height: 16),
             _InfoCard(
-              title: 'Your birth number ${mulank(dob)}',
+              title: tr('Your birth number {n}', {'n': digits(mulank(dob))}),
               n: mulank(dob),
             ),
             const SizedBox(height: 12),
             _InfoCard(
-              title: 'Your destiny number ${bhagyank(dob)}',
+              title: tr('Your destiny number {n}', {
+                'n': digits(bhagyank(dob)),
+              }),
               n: bhagyank(dob),
             ),
             if (nameNo != null) ...[
@@ -85,16 +96,18 @@ class _NumerologyScreenState extends State<NumerologyScreen> {
               Card.outlined(
                 margin: EdgeInsets.zero,
                 child: ListTile(
-                  title: Text('Name number $nameNo'),
-                  subtitle: Text(nameHarmony(mulank(dob), nameNo)),
+                  title: Text(tr('Name number {n}', {'n': digits(nameNo)})),
+                  subtitle: Text(tr(nameHarmony(mulank(dob), nameNo))),
                 ),
               ),
             ],
           ],
           const SizedBox(height: 16),
           Text(
-            'Chaldean numerology, as commonly used in India. For '
-            'entertainment purposes only.',
+            tr(
+              'Chaldean numerology, as commonly used in India. For '
+              'entertainment purposes only.',
+            ),
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -120,7 +133,7 @@ class _Big extends StatelessWidget {
           children: [
             Text(label, style: theme.textTheme.labelMedium),
             Text(
-              '$n',
+              digits(n),
               style: theme.textTheme.displaySmall?.copyWith(
                 color: theme.colorScheme.primary,
               ),
@@ -151,14 +164,23 @@ class _InfoCard extends StatelessWidget {
           children: [
             Text(title, style: theme.textTheme.titleMedium),
             const SizedBox(height: 4),
-            Text('Ruled by ${i.planet}', style: theme.textTheme.labelLarge),
-            const SizedBox(height: 8),
-            Text(i.traits),
-            const SizedBox(height: 8),
-            Text('Lucky days: ${i.days.join(', ')}'),
-            Text('Lucky colours: ${i.colours.join(', ')}'),
             Text(
-              'Friendly numbers: ${(i.friendly.toList()..sort()).join(', ')}',
+              tr('Ruled by {planet}', {'planet': tr(i.planet)}),
+              style: theme.textTheme.labelLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(tr(i.traits)),
+            const SizedBox(height: 8),
+            Text(tr('Lucky days: {list}', {'list': i.days.map(tr).join(', ')})),
+            Text(
+              tr('Lucky colours: {list}', {
+                'list': i.colours.map(tr).join(', '),
+              }),
+            ),
+            Text(
+              tr('Friendly numbers: {list}', {
+                'list': (i.friendly.toList()..sort()).map(digits).join(', '),
+              }),
             ),
           ],
         ),

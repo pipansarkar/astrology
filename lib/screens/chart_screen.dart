@@ -13,6 +13,8 @@ import '../widgets/kundli_chart.dart';
 import '../widgets/doshas_tab.dart';
 import '../widgets/transits_tab.dart';
 import '../widgets/format.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 import 'horoscope_screen.dart';
 import 'ask_question_screen.dart';
 
@@ -48,7 +50,7 @@ class _ChartScreenState extends State<ChartScreen> {
       );
     } catch (e) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Could not create the PDF.')),
+        SnackBar(content: Text(tr('Could not create the PDF.'))),
       );
     } finally {
       if (mounted) setState(() => _sharing = false);
@@ -63,10 +65,10 @@ class _ChartScreenState extends State<ChartScreen> {
       await ProfileRepository().save(widget.kundli.details);
       if (!mounted) return;
       setState(() => _saved = true);
-      messenger.showSnackBar(const SnackBar(content: Text('Chart saved')));
+      messenger.showSnackBar(SnackBar(content: Text(tr('Chart saved'))));
     } catch (e) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Could not save. Check your internet.')),
+        SnackBar(content: Text(tr('Could not save. Check your internet.'))),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -83,7 +85,7 @@ class _ChartScreenState extends State<ChartScreen> {
           title: Text(k.details.name),
           actions: [
             IconButton(
-              tooltip: "Today's horoscope",
+              tooltip: tr("Today's horoscope"),
               icon: const Icon(Icons.wb_sunny_outlined),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
@@ -96,7 +98,7 @@ class _ChartScreenState extends State<ChartScreen> {
               ),
             ),
             IconButton(
-              tooltip: 'Share PDF report',
+              tooltip: tr('Share PDF report'),
               icon: _sharing
                   ? const SizedBox.square(
                       dimension: 20,
@@ -115,22 +117,22 @@ class _ChartScreenState extends State<ChartScreen> {
                       ),
                     )
                   : IconButton(
-                      tooltip: _saved ? 'Saved' : 'Save chart',
+                      tooltip: _saved ? tr('Saved') : tr('Save chart'),
                       onPressed: _saved ? null : _save,
                       icon: Icon(
                         _saved ? Icons.bookmark : Icons.bookmark_add_outlined,
                       ),
                     ),
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             tabs: [
-              Tab(text: 'Chart'),
-              Tab(text: 'Dasha'),
-              Tab(text: 'Doshas'),
-              Tab(text: 'Transits'),
-              Tab(text: 'Panchang'),
+              Tab(text: tr('Chart')),
+              Tab(text: tr('Dasha')),
+              Tab(text: tr('Doshas')),
+              Tab(text: tr('Transits')),
+              Tab(text: tr('Panchang')),
             ],
           ),
         ),
@@ -174,48 +176,60 @@ class _ChartTab extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _Fact('Lagna', k.lagna.signLabel),
-            _Fact('Rashi (Moon sign)', moon.signLabel),
-            _Fact('Nakshatra', moon.nakshatraLabel),
+            _Fact(tr('Lagna'), signName(k.lagna.sign)),
+            _Fact(tr('Rashi (Moon sign)'), signName(moon.sign)),
+            _Fact(tr('Nakshatra'), nakshatraWithPada(moon)),
           ],
         ),
         const SizedBox(height: 16),
         const Center(child: ChartStylePicker()),
         const SizedBox(height: 16),
         KundliChart(
-          title: 'Rashi chart (D1)',
+          title: tr('Rashi chart (D1)'),
           ascendantSign: k.lagna.sign,
-          items: k.rashiItems,
+          items: [
+            for (final p in k.planets)
+              (
+                label: planetShort(p.body, retrograde: p.retrograde),
+                sign: p.sign,
+              ),
+          ],
         ),
         const SizedBox(height: 24),
         KundliChart(
-          title: 'Navamsa chart (D9)',
+          title: tr('Navamsa chart (D9)'),
           ascendantSign: k.lagna.navamsaSign,
-          items: k.navamsaItems,
+          items: [
+            for (final p in k.planets)
+              (
+                label: planetShort(p.body, retrograde: p.retrograde),
+                sign: p.navamsaSign,
+              ),
+          ],
         ),
         const SizedBox(height: 24),
-        Text('Planets', style: theme.textTheme.titleMedium),
+        Text(tr('Planets'), style: theme.textTheme.titleMedium),
         const SizedBox(height: 8),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: DataTable(
             columnSpacing: 18,
-            columns: const [
-              DataColumn(label: Text('Planet')),
-              DataColumn(label: Text('Sign')),
-              DataColumn(label: Text('Degree')),
-              DataColumn(label: Text('Nakshatra')),
-              DataColumn(label: Text('House'), numeric: true),
-              DataColumn(label: Text('Dignity')),
+            columns: [
+              DataColumn(label: Text(tr('Planet'))),
+              DataColumn(label: Text(tr('Sign'))),
+              DataColumn(label: Text(tr('Degree'))),
+              DataColumn(label: Text(tr('Nakshatra'))),
+              DataColumn(label: Text(tr('House')), numeric: true),
+              DataColumn(label: Text(tr('Dignity'))),
             ],
             rows: [
               DataRow(
                 cells: [
-                  const DataCell(Text('Lagna')),
-                  DataCell(Text(signNames[k.lagna.sign])),
+                  DataCell(Text(tr('Lagna'))),
+                  DataCell(Text(signShort(k.lagna.sign))),
                   DataCell(Text(k.lagna.degreeLabel)),
-                  DataCell(Text(k.lagna.nakshatraLabel)),
-                  const DataCell(Text('1')),
+                  DataCell(Text(nakshatraWithPada(k.lagna))),
+                  DataCell(Text(digits(1))),
                   const DataCell(Text('')),
                 ],
               ),
@@ -223,13 +237,19 @@ class _ChartTab extends StatelessWidget {
                 DataRow(
                   cells: [
                     DataCell(
-                      Text('${bodyNames[p.body]}${p.retrograde ? ' (R)' : ''}'),
+                      Text(
+                        '${planetName(p.body)}${p.retrograde ? ' (${tr('R')})' : ''}',
+                      ),
                     ),
-                    DataCell(Text(signNames[p.sign])),
+                    DataCell(Text(signShort(p.sign))),
                     DataCell(Text(p.degreeLabel)),
-                    DataCell(Text(p.nakshatraLabel)),
-                    DataCell(Text('${p.house}')),
-                    DataCell(Text(dignityLabels[p.dignity] ?? '')),
+                    DataCell(Text(nakshatraWithPada(p))),
+                    DataCell(Text(digits(p.house))),
+                    DataCell(
+                      Text(
+                        p.dignity == null ? '' : tr(dignityLabels[p.dignity]!),
+                      ),
+                    ),
                   ],
                 ),
             ],
@@ -244,27 +264,32 @@ class _ChartTab extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.question_answer_outlined),
-            label: const Text('Ask an astrologer about this chart'),
+            label: Text(tr('Ask an astrologer about this chart')),
           ),
         ],
         const SizedBox(height: 16),
         Card.outlined(
           margin: EdgeInsets.zero,
           child: ListTile(
-            title: Text(m.isManglik ? 'Manglik dosha present' : 'Not Manglik'),
+            title: Text(
+              m.isManglik ? tr('Manglik dosha present') : tr('Not Manglik'),
+            ),
             subtitle: Text(
-              'Mars in house ${k.planet(Body.mars).house} from Lagna. '
-              '${m.fromLagna ? 'Dosha from Lagna. ' : ''}'
-              '${m.fromMoon ? 'Dosha from Moon. ' : ''}'
-              'Basic check; cancellation rules are not applied.',
+              [
+                tr('Mars in house {n} from Lagna.', {
+                  'n': digits(k.planet(Body.mars).house),
+                }),
+                if (m.fromLagna) tr('Dosha from Lagna.'),
+                if (m.fromMoon) tr('Dosha from Moon.'),
+                tr('Basic check; cancellation rules are not applied.'),
+              ].join(' '),
             ),
           ),
         ),
         const SizedBox(height: 16),
         Text(
-          'Swiss Ephemeris · Sidereal (Lahiri ${formatDegrees(k.ayanamsa)}) · '
-          'Whole-sign houses · Mean node.\n'
-          'For guidance and entertainment purposes only.',
+          '${tr('Swiss Ephemeris · Sidereal (Lahiri {ayanamsa}) · Whole-sign houses · Mean node.', {'ayanamsa': formatDegrees(k.ayanamsa)})}\n'
+          '${tr('For guidance and entertainment purposes only.')}',
           style: theme.textTheme.bodySmall,
         ),
       ],
@@ -323,9 +348,16 @@ class _DashaTab extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Text(
-            'Vimshottari Dasha. Birth nakshatra ${moon.nakshatraLabel} '
-            '(lord ${bodyNames[nakshatraLord(moon.longitude)]}). '
-            'Balance at birth: $years y $months m.',
+            tr(
+              'Vimshottari Dasha. Birth nakshatra {nakshatra} (lord {lord}). '
+              'Balance at birth: {y} y {m} m.',
+              {
+                'nakshatra': nakshatraWithPada(moon),
+                'lord': planetName(nakshatraLord(moon.longitude)),
+                'y': digits(years),
+                'm': digits(months),
+              },
+            ),
             style: theme.textTheme.bodyMedium,
           ),
         ),
@@ -336,7 +368,7 @@ class _DashaTab extends StatelessWidget {
                 ? Icon(Icons.play_arrow, color: theme.colorScheme.primary)
                 : const SizedBox(width: 24),
             title: Text(
-              '${bodyNames[md.lord]} Mahadasha',
+              tr('{planet} Mahadasha', {'planet': planetName(md.lord)}),
               style: md.contains(now)
                   ? TextStyle(
                       color: theme.colorScheme.primary,
@@ -351,7 +383,7 @@ class _DashaTab extends StatelessWidget {
                   dense: true,
                   contentPadding: const EdgeInsets.only(left: 72, right: 16),
                   title: Text(
-                    '${bodyNames[md.lord]} – ${bodyNames[ad.lord]}',
+                    '${planetName(md.lord)} – ${planetName(ad.lord)}',
                     style: ad.contains(now)
                         ? TextStyle(
                             color: theme.colorScheme.primary,
@@ -384,17 +416,19 @@ class _PanchangTab extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
       children: [
-        row('Vara (weekday)', p.vara),
-        row('Tithi', p.tithiLabel),
-        row('Nakshatra', moon.nakshatraLabel),
-        row('Yoga', p.yogaName),
-        row('Karana', p.karana),
+        row(tr('Vara (weekday)'), varaName(k.details.localDateTime.weekday)),
+        row(tr('Tithi'), tithiName(p.tithi)),
+        row(tr('Nakshatra'), nakshatraWithPada(moon)),
+        row(tr('Yoga'), yogaName(p.yoga)),
+        row(tr('Karana'), karanaNameL(p.karana)),
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            'Panchang at the moment of birth. The Vedic day begins at '
-            'sunrise, so for births before sunrise the vara is the previous '
-            'weekday.',
+            tr(
+              'Panchang at the moment of birth. The Vedic day begins at '
+              'sunrise, so for births before sunrise the vara is the previous '
+              'weekday.',
+            ),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),

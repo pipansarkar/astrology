@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../data/cities.dart';
 import '../data/city_search.dart';
 import '../settings/place_setting.dart';
+import '../l10n/l10n.dart';
 
 /// App bar button showing the panjika place; tap to change it.
 class PlaceButton extends StatelessWidget {
@@ -67,8 +68,8 @@ class _PlaceSheetState extends State<_PlaceSheet> {
               child: TextField(
                 autofocus: true,
                 onChanged: _search,
-                decoration: const InputDecoration(
-                  hintText: 'Search town or city',
+                decoration: InputDecoration(
+                  hintText: tr('Search town or city'),
                   prefixIcon: Icon(Icons.search),
                   border: OutlineInputBorder(),
                 ),

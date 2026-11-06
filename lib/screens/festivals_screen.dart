@@ -6,6 +6,8 @@ import '../data/place_time.dart';
 import '../settings/place_setting.dart';
 import '../widgets/format.dart';
 import '../widgets/place_picker.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 import 'panjika_screen.dart';
 
 /// Month calendar of festivals, vrats and Sankrantis.
@@ -30,7 +32,7 @@ class _FestivalsScreenState extends State<FestivalsScreen> {
     final loc = MaterialLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Festivals & Vrats'),
+        title: Text(tr('Festivals & Vrats')),
         actions: const [PlaceButton()],
       ),
       body: ValueListenableBuilder<City>(
@@ -40,7 +42,7 @@ class _FestivalsScreenState extends State<FestivalsScreen> {
             Row(
               children: [
                 IconButton(
-                  tooltip: 'Previous month',
+                  tooltip: tr('Previous month'),
                   onPressed: () => setState(
                     () => _month = DateTime.utc(_month.year, _month.month - 1),
                   ),
@@ -54,7 +56,7 @@ class _FestivalsScreenState extends State<FestivalsScreen> {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Next month',
+                  tooltip: tr('Next month'),
                   onPressed: () => setState(
                     () => _month = DateTime.utc(_month.year, _month.month + 1),
                   ),
@@ -125,25 +127,25 @@ class _MonthViewState extends State<_MonthView> {
             _Grid(month: widget.month, byDay: byDay, city: widget.city),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Show Ekadashi, Purnima, Amavasya'),
+              title: Text(tr('Show Ekadashi, Purnima, Amavasya')),
               value: widget.showVrats,
               onChanged: widget.onToggleVrats,
             ),
             const Divider(),
             if (shown.isEmpty)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.all(24),
-                child: Center(child: Text('No festivals this month.')),
+                child: Center(child: Text(tr('No festivals this month.'))),
               ),
             for (final f in shown)
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: _KindIcon(f.kind),
-                title: Text(f.name),
+                title: Text(tr(f.name)),
                 subtitle: Text(
                   [
                     fmtFullDate(context, f.date),
-                    if (f.note != null) f.note!,
+                    if (f.note != null) festivalNote(f.note!),
                   ].join(' · '),
                 ),
                 onTap: () => Navigator.of(context).push(
@@ -189,7 +191,7 @@ class _Grid extends StatelessWidget {
     final days = DateTime.utc(month.year, month.month + 1, 0).day;
     final lead = month.weekday % 7; // Sunday first
     final today = PlaceTime(city).localDate(DateTime.now().toUtc());
-    const heads = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    final heads = MaterialLocalizations.of(context).narrowWeekdays;
 
     return Column(
       children: [
@@ -261,7 +263,7 @@ class _DayCell extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              '$day',
+              digits(day),
               style: TextStyle(
                 fontWeight: big ? FontWeight.w700 : FontWeight.w400,
                 color: big ? s.primary : null,

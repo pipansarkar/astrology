@@ -10,6 +10,8 @@ import '../models/birth_details.dart';
 import '../settings/place_setting.dart';
 import '../widgets/format.dart';
 import '../widgets/place_picker.dart';
+import '../l10n/l10n.dart';
+import '../l10n/names.dart';
 
 class MuhuratScreen extends StatefulWidget {
   const MuhuratScreen({super.key});
@@ -77,13 +79,13 @@ class _MuhuratScreenState extends State<MuhuratScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Muhurat'),
+        title: Text(tr('Muhurat')),
         actions: const [PlaceButton()],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Event', style: theme.textTheme.titleSmall),
+          Text(tr('Event'), style: theme.textTheme.titleSmall),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
@@ -91,7 +93,7 @@ class _MuhuratScreenState extends State<MuhuratScreen> {
             children: [
               for (final e in MuhuratEvent.values)
                 ChoiceChip(
-                  label: Text(muhuratRules[e]!.label),
+                  label: Text(tr(muhuratRules[e]!.label)),
                   selected: _event == e,
                   onSelected: (_) => setState(() {
                     _event = e;
@@ -103,15 +105,15 @@ class _MuhuratScreenState extends State<MuhuratScreen> {
           const SizedBox(height: 16),
           Row(
             children: [
-              Text('Search the next', style: theme.textTheme.titleSmall),
+              Text(tr('Search the next'), style: theme.textTheme.titleSmall),
               const SizedBox(width: 12),
               DropdownButton<int>(
                 value: _days,
-                items: const [
-                  DropdownMenuItem(value: 30, child: Text('30 days')),
-                  DropdownMenuItem(value: 90, child: Text('3 months')),
-                  DropdownMenuItem(value: 180, child: Text('6 months')),
-                  DropdownMenuItem(value: 365, child: Text('12 months')),
+                items: [
+                  DropdownMenuItem(value: 30, child: Text(tr('30 days'))),
+                  DropdownMenuItem(value: 90, child: Text(tr('3 months'))),
+                  DropdownMenuItem(value: 180, child: Text(tr('6 months'))),
+                  DropdownMenuItem(value: 365, child: Text(tr('12 months'))),
                 ],
                 onChanged: (v) => setState(() => _days = v!),
               ),
@@ -122,13 +124,13 @@ class _MuhuratScreenState extends State<MuhuratScreen> {
             DropdownButtonFormField<BirthDetails?>(
               initialValue: _person,
               isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Personalise for (optional)',
-                helperText: 'Also avoids their Chandrashtama and bad Taras',
+              decoration: InputDecoration(
+                labelText: tr('Personalise for (optional)'),
+                helperText: tr('Also avoids their Chandrashtama and bad Taras'),
                 border: OutlineInputBorder(),
               ),
               items: [
-                const DropdownMenuItem(value: null, child: Text('Anyone')),
+                DropdownMenuItem(value: null, child: Text(tr('Anyone'))),
                 for (final p in _profiles)
                   DropdownMenuItem(value: p, child: Text(p.name)),
               ],
@@ -139,7 +141,7 @@ class _MuhuratScreenState extends State<MuhuratScreen> {
           FilledButton.icon(
             onPressed: _progress == null ? _search : null,
             icon: const Icon(Icons.search),
-            label: const Text('Find muhurats'),
+            label: Text(tr('Find muhurats')),
           ),
           if (_progress != null) ...[
             const SizedBox(height: 16),
@@ -149,19 +151,23 @@ class _MuhuratScreenState extends State<MuhuratScreen> {
             const SizedBox(height: 16),
             Text(
               results.isEmpty
-                  ? 'No suitable muhurat in this period. Try a longer search.'
-                  : '${results.length} muhurats found',
+                  ? tr(
+                      'No suitable muhurat in this period. Try a longer search.',
+                    )
+                  : tr('{n} muhurats found', {'n': digits(results.length)}),
               style: theme.textTheme.titleMedium,
             ),
             for (final w in results) _WindowTile(w),
           ],
           const SizedBox(height: 16),
           Text(
-            'Based on classical rules for tithi, nakshatra, weekday and '
-            'karana, avoiding Rahu Kaal, Yamaganda, Gulika, Bhadra, Adhik '
-            'months and (for marriage and griha pravesh) combust Jupiter or '
-            'Venus. Marriage follows the Bengal custom of no weddings in '
-            'Bhadro, Poush and Choitro. Please confirm with your purohit.',
+            tr(
+              'Based on classical rules for tithi, nakshatra, weekday and '
+              'karana, avoiding Rahu Kaal, Yamaganda, Gulika, Bhadra, Adhik '
+              'months and (for marriage and griha pravesh) combust Jupiter or '
+              'Venus. Marriage follows the Bengal custom of no weddings in '
+              'Bhadro, Poush and Choitro. Please confirm with your purohit.',
+            ),
             style: theme.textTheme.bodySmall,
           ),
         ],
@@ -184,8 +190,8 @@ class _WindowTile extends StatelessWidget {
       title: Text(fmtFullDate(context, w.day.date)),
       subtitle: Text(
         '${f.timeOn(w.start, w.day.date)} – ${f.timeOn(w.end, w.day.date)} '
-        '(${hours.inHours} h ${hours.inMinutes % 60} m)\n'
-        '${w.tithi} · ${w.nakshatra}',
+        '(${tr('{h} h {m} m', {'h': digits(hours.inHours), 'm': digits(hours.inMinutes % 60)})})\n'
+        '${tithiName(w.tithiIndex)} · ${nakshatraName(w.nakshatraIndex)}',
       ),
       isThreeLine: true,
     );
